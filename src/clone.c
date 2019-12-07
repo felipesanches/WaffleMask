@@ -41,26 +41,11 @@ INT32* StreamBufs[2];
 
 UINT32 FillBuffer(WAVE_16BS* Buffer, UINT32 BufferSize)
 {
-
-#define k 600
-	UINT32 CurSmpl;
-	static int i=0;
-	static int j=0;
-	for (CurSmpl = 0x00; CurSmpl < BufferSize; CurSmpl ++)
-	{
-              i++;
-              if (i > k) i = 0;
-              j++;
-              if (j > k) j = 0;
-              Buffer[CurSmpl].Left = i > k/2 ? -0x8000 : 0x7FFF;
-              Buffer[CurSmpl].Right = j > 1.4 * k/2 ? -0x8000 : 0x7FFF;
-	}
-
 	ym2612_stream_update(0, StreamBufs, BufferSize);
 	for (UINT32 OutPos = 0x00; OutPos < BufferSize; OutPos ++)
 	{
-		Buffer[OutPos].Left = Buffer[OutPos].Left * 0.01 + 0.9 * CurBufL[OutPos];
-		Buffer[OutPos].Right = Buffer[OutPos].Right * 0.01 + 0.9 * CurBufR[OutPos];
+		Buffer[OutPos].Left = CurBufL[OutPos];
+		Buffer[OutPos].Right = CurBufR[OutPos];
 	}
 	return BufferSize;
 }
