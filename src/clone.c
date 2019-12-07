@@ -187,7 +187,7 @@ void setup_instrument(){
 //  return (144*note*(pow(2, 20))/clockFrq) / pow(2, 4-1);
 //}
 
-void play(){
+void play(UINT8 note, UINT8 velocity){
   int offset = 0;
   int octave = 2;
   int NOTE_A = 1038;//CalcFNumber();
@@ -197,20 +197,56 @@ void play(){
   ym2612_write_reg(0, 0xA0 + offset, lsb, 0);
 //  ym2612_w(0, 0x28, 0xF0 + offset + (setA1 << 2));
 
-ym2612_write_reg(0, 0x28, 0xF0, 0); //Reg 0x28, Value 0xF0, A1 LOW. Key On
-//ym2612_write_reg(0, 0x28, 0x00, 0); //Reg 0x28, Value 0xF0, A1 LOW. Key Off
+  ym2612_write_reg(0, 0x28, velocity != 0 ? 0xF0 : 0x00, 0); //Reg 0x28, Value 0xF0, A1 LOW. Key On
+  printf("play %02X %02X\n", note, velocity);
 }
 
 int main(){
+	int fd;
+	unsigned char buf[128];
+	int l;
+
+	if ((fd = open("/dev/midi1", O_RDONLY, 0)) == -1){
+		perror ("open /dev/midi1");
+		exit (-1);
+	}
+
 	device_start_ym2612(0, 8000000);
 	device_reset_ym2612(0);
-
 	setup_instrument();
-	play();
-
+	play(0, 1);
 	StartStream();
-	while (true){
+
+	#define WAITING_COMMAND 0
+	#define WAITING_NOTE 1
+	#define WAITING_VELOCITY 2
+	UINT8 state = WAITING_COMMAND;
+	UINT8 note, velocity;
+	while ((l = read (fd, buf, sizeof (buf))) != -1){
+		int i;
 		WaveOutCallBack();
+
+		for (i = 0; i < l; i++){
+			if (state == WAITING_COMMAND && buf[i] == 0x90){
+				state = WAITING_NOTE;
+				continue;
+			}
+
+			if (state == WAITING_NOTE){
+				note = buf[i];
+				state = WAITING_VELOCITY;
+				continue;
+			}
+
+			if (state == WAITING_VELOCITY){
+				velocity = buf[i];
+				state = WAITING_COMMAND;
+				play(note, velocity);
+				continue;
+			}
+		}
 	}
+
+	close (fd);
 	return 0;
 }
