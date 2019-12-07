@@ -1,4 +1,5 @@
 #include <stddef.h>    // for NULL
+#include <stdlib.h>    // for malloc
 #include "chips/mamedef.h"
 #include "chips/fm.h"
 #include "chips/2612intf.h"
@@ -9,18 +10,18 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-UINT32 sampleRate = 0;
+UINT32 sampleRate = 44100;
+UINT8 CHIP_SAMPLING_MODE = 0;
+INT32 CHIP_SAMPLE_RATE = 44100;
+UINT8 IsVGMInit = 1;
+stream_sample_t* DUMMYBUF[0x02] = {NULL, NULL};
+
 UINT16 nChannels = 2;
 typedef struct waveform_16bit_stereo
 {
 	INT16 Left;
 	INT16 Right;
 } WAVE_16BS;
-
-INT32 CHIP_SAMPLE_RATE = 0x0000;
-UINT8 CHIP_SAMPLING_MODE = 0;
-stream_sample_t* DUMMYBUF[0x02] = {NULL, NULL};
-UINT8 IsVGMInit = 0;
 
 #define SAMPLESIZE    sizeof(WAVE_16BS)
 #define BUFSIZE_MAX   0x1000    // Maximum Buffer Size in Bytes
@@ -32,197 +33,60 @@ static INT32 hWaveOut;
 static bool WaveOutOpen;
 UINT32 BUFFERSIZE;	// Buffer Size in Bytes
 UINT32 SAMPLES_PER_BUFFER;
-static char BufferOut[AUDIOBUFFERS][BUFSIZE_MAX];
-UINT16 AUDIOBUFFERU = AUDIOBUFFERS;		// used AudioBuffers
+WAVE_16BS BufferOut[BUFSIZE_MAX];
 
-UINT32 BlocksSent;
-UINT32 BlocksPlayed;
-
+INT32* CurBufL;
+INT32* CurBufR;
+INT32* StreamBufs[2];
 
 UINT32 FillBuffer(WAVE_16BS* Buffer, UINT32 BufferSize)
 {
-#if 0
-	UINT32 CurSmpl;
-	WAVE_32BS TempBuf;
-	INT32 CurMstVol;
-	UINT32 RecalcStep;
-	CA_LIST* CurCLst;
-	
-	//memset(Buffer, 0x00, sizeof(WAVE_16BS) * BufferSize);
-	
-	RecalcStep = FadePlay ? SampleRate / 44100 : 0;
-	CurMstVol = RecalcFadeVolume();
-	
-	if (Buffer == NULL)
-	{
-		//for (CurSmpl = 0x00; CurSmpl < BufferSize; CurSmpl ++)
-		//	InterpretFile(1);
-		InterpretFile(BufferSize);
-		
-		if (FadePlay && ! FadeStart)
-		{
-			FadeStart = PlayingTime;
-			RecalcStep = FadePlay ? SampleRate / 100 : 0;
-		}
-		//if (RecalcStep && ! (CurSmpl % RecalcStep))
-		if (RecalcStep)
-			CurMstVol = RecalcFadeVolume();
-		
-		if (VGMEnd)
-		{
-			if (PauseSmpls <= BufferSize)
-			{
-				PauseSmpls = 0;
-				EndPlay = true;
-			}
-			else
-			{
-				PauseSmpls -= BufferSize;
-			}
-		}
-		
-		return BufferSize;
-	}
-	
-	CurChipList = (VGMEnd || PausePlay) ? ChipListPause : ChipListAll;
-	
-	for (CurSmpl = 0x00; CurSmpl < BufferSize; CurSmpl ++)
-	{
-		InterpretFile(1);
-		
-		// Sample Structures
-		//	00 - SN76496
-		//	01 - YM2413
-		//	02 - YM2612
-		//	03 - YM2151
-		//	04 - SegaPCM
-		//	05 - RF5C68
-		//	06 - YM2203
-		//	07 - YM2608
-		//	08 - YM2610/YM2610B
-		//	09 - YM3812
-		//	0A - YM3526
-		//	0B - Y8950
-		//	0C - YMF262
-		//	0D - YMF278B
-		//	0E - YMF271
-		//	0F - YMZ280B
-		//	10 - RF5C164
-		//	11 - PWM
-		//	12 - AY8910
-		//	13 - GameBoy
-		//	14 - NES APU
-		//	15 - MultiPCM
-		//	16 - UPD7759
-		//	17 - OKIM6258
-		//	18 - OKIM6295
-		//	19 - K051649
-		//	1A - K054539
-		//	1B - HuC6280
-		//	1C - C140
-		//	1D - K053260
-		//	1E - Pokey
-		//	1F - QSound
-		//	20 - YMF292/SCSP
-		TempBuf.Left = 0x00;
-		TempBuf.Right = 0x00;
-		CurCLst = CurChipList;
-		while(CurCLst != NULL)
-		{
-			if (! CurCLst->COpts->Disabled)
-			{
-				ResampleChipStream(CurCLst, &TempBuf, 1);
-			}
-			CurCLst = CurCLst->next;
-		}
-		
-		// ChipData << 9 [ChipVol] >> 5 << 8 [MstVol] >> 11  ->  9-5+8-11 = <<1
-		TempBuf.Left = ((TempBuf.Left >> 5) * CurMstVol) >> 11;
-		TempBuf.Right = ((TempBuf.Right >> 5) * CurMstVol) >> 11;
-		if (SurroundSound)
-			TempBuf.Right *= -1;
-		Buffer[CurSmpl].Left = Limit2Short(TempBuf.Left);
-		Buffer[CurSmpl].Right = Limit2Short(TempBuf.Right);
-		
-		if (FadePlay && ! FadeStart)
-		{
-			FadeStart = PlayingTime;
-			RecalcStep = FadePlay ? SampleRate / 100 : 0;
-		}
-		if (RecalcStep && ! (CurSmpl % RecalcStep))
-			CurMstVol = RecalcFadeVolume();
-		
-		if (VGMEnd)
-		{
-			if (! PauseSmpls)
-			{
-				//if (! FullBufFill)
-				if (! EndPlay)
-				{
-					EndPlay = true;
-					break;
-				}
-			}
-			else //if (PauseSmpls)
-			{
-				PauseSmpls --;
-			}
-		}
-	1}
-	
-	return CurSmpl;
-#endif
-#define k 6
+
+#define k 600
 	UINT32 CurSmpl;
 	static int i=0;
 	static int j=0;
 	for (CurSmpl = 0x00; CurSmpl < BufferSize; CurSmpl ++)
 	{
-		i++;
-		if (i > k) i = 0;
-		j++;
-		if (j > k) j = 0;
-		Buffer[CurSmpl].Left = i > k/2 ? -0x8000 : 0x7FFF;
-		Buffer[CurSmpl].Right = j > 1.4 * k/2 ? -0x8000 : 0x7FFF;
+              i++;
+              if (i > k) i = 0;
+              j++;
+              if (j > k) j = 0;
+              Buffer[CurSmpl].Left = i > k/2 ? -0x8000 : 0x7FFF;
+              Buffer[CurSmpl].Right = j > 1.4 * k/2 ? -0x8000 : 0x7FFF;
+	}
+
+	ym2612_stream_update(0, StreamBufs, BufferSize);
+	for (UINT32 OutPos = 0x00; OutPos < BufferSize; OutPos ++)
+	{
+		Buffer[OutPos].Left = Buffer[OutPos].Left * 0.01 + 0.9 * CurBufL[OutPos];
+		Buffer[OutPos].Right = Buffer[OutPos].Right * 0.01 + 0.9 * CurBufR[OutPos];
 	}
 	return BufferSize;
 }
 
 
-void WaveOutLinuxCallBack(void)
+void WaveOutCallBack(void)
 {
-	UINT16 CurBuf;
-	WAVE_16BS* TempBuf;
 	UINT32 WrtSmpls;
 	
 	if (! WaveOutOpen){
 		printf("Device not opened.\n");
 		return;
 	}
-	
-	CurBuf = BlocksSent % AUDIOBUFFERU;
-	TempBuf = (WAVE_16BS*)BufferOut[CurBuf];
-	
-	WrtSmpls = FillBuffer(TempBuf, SAMPLES_PER_BUFFER);
-	
-	write(hWaveOut, TempBuf, WrtSmpls * SAMPLESIZE);
-	BlocksSent ++;
-	BlocksPlayed ++;
-	
+		
+	WrtSmpls = FillBuffer(BufferOut, SAMPLES_PER_BUFFER);
+	write(hWaveOut, BufferOut, WrtSmpls * SAMPLESIZE);
 	return;
 }
 
 UINT8 StopStream(void)
 {
-	UINT32 RetVal;
-	
 	if (! WaveOutOpen)
 		return 0xD8;	// Thread is not active
 	
 	WaveOutOpen = false;
-	
-	close(hWaveOut);
-	
+	close(hWaveOut);	
 	return 0x00;
 }
 
@@ -239,43 +103,129 @@ UINT8 StartStream()
 	// Init Audio
 	BUFFERSIZE = 1 << BUFSIZELD;
 	SAMPLES_PER_BUFFER = BUFFERSIZE / SAMPLESIZE;
-	if (AUDIOBUFFERU > AUDIOBUFFERS)
-		AUDIOBUFFERU = AUDIOBUFFERS;
-	
+
+	StreamBufs[0x00] = (INT32*)malloc(SAMPLES_PER_BUFFER * sizeof(INT32));
+	StreamBufs[0x01] = (INT32*)malloc(SAMPLES_PER_BUFFER * sizeof(INT32));
+	CurBufL = StreamBufs[0x00];
+	CurBufR = StreamBufs[0x01];
+
 	hWaveOut = open("/dev/dsp", O_WRONLY);
-	if (hWaveOut < 0)
-	{
+	if (hWaveOut < 0){
 		printf("waveOutOpen failed!\n");
-		return 0xC0;		// waveOutOpen failed
+		return 0xC0;
 	}
+
 	WaveOutOpen = true;
+
 	
-	ArgVal = (AUDIOBUFFERU << 16) | BUFSIZELD;
+	ArgVal = (AUDIOBUFFERS << 16) | BUFSIZELD;
 	RetVal = ioctl(hWaveOut, SNDCTL_DSP_SETFRAGMENT, &ArgVal);
-	if (RetVal)
-		printf("Error setting Fragment Size!\n");
+	if (RetVal) printf("Error setting Fragment Size!\n");
+
+
 	ArgVal = AFMT_S16_NE;
 	RetVal = ioctl(hWaveOut, SNDCTL_DSP_SETFMT, &ArgVal);
-	if (RetVal)
-		printf("Error setting Format!\n");
+	if (RetVal) printf("Error setting Format!\n");
+
+
 	ArgVal = nChannels;
 	RetVal = ioctl(hWaveOut, SNDCTL_DSP_CHANNELS, &ArgVal);
-	if (RetVal)
-		printf("Error setting Channels!\n");
+	if (RetVal) printf("Error setting Channels!\n");
+
+
 	ArgVal = sampleRate;
 	RetVal = ioctl(hWaveOut, SNDCTL_DSP_SPEED, &ArgVal);
-	if (RetVal)
-		printf("Error setting Sample Rate!\n");
+	if (RetVal) printf("Error setting Sample Rate!\n");
 	
 	return 0x00;
 }
 
 
+void ym2612_write_reg(UINT8 chipid, UINT8 addr, UINT8 value, UINT8 a1){
+          ym2612_w(chipid, a1 << 1, addr);
+          ym2612_w(chipid, a1 << 1 | 1, value);  
+} 
+
+
+void setup_instrument(){
+ 	for(int a1 = 0; a1<=1; a1++){
+		for(int i=0; i<3; i++){
+			//Operator 1
+			ym2612_write_reg(0, 0x30 + i, 0x71, a1); //DT1/Mul
+			ym2612_write_reg(0, 0x40 + i, 0x23, a1); //Total Level
+			ym2612_write_reg(0, 0x50 + i, 0x5F, a1); //RS/AR
+			ym2612_write_reg(0, 0x60 + i, 0x05, a1); //AM/D1R
+			ym2612_write_reg(0, 0x70 + i, 0x02, a1); //D2R
+			ym2612_write_reg(0, 0x80 + i, 0x11, a1); //D1L/RR
+			ym2612_write_reg(0, 0x90 + i, 0x00, a1); //SSG EG
+
+			//Operator 2
+			ym2612_write_reg(0, 0x34 + i, 0x0D, a1); //DT1/Mul
+			ym2612_write_reg(0, 0x44 + i, 0x2D, a1); //Total Level
+			ym2612_write_reg(0, 0x54 + i, 0x99, a1); //RS/AR
+			ym2612_write_reg(0, 0x64 + i, 0x05, a1); //AM/D1R
+			ym2612_write_reg(0, 0x74 + i, 0x02, a1); //D2R
+			ym2612_write_reg(0, 0x84 + i, 0x11, a1); //D1L/RR
+			ym2612_write_reg(0, 0x94 + i, 0x00, a1); //SSG EG
+
+			//Operator 3
+			ym2612_write_reg(0, 0x38 + i, 0x33, a1); //DT1/Mul
+			ym2612_write_reg(0, 0x48 + i, 0x26, a1); //Total Level
+			ym2612_write_reg(0, 0x58 + i, 0x5F, a1); //RS/AR
+			ym2612_write_reg(0, 0x68 + i, 0x05, a1); //AM/D1R
+			ym2612_write_reg(0, 0x78 + i, 0x02, a1); //D2R
+			ym2612_write_reg(0, 0x88 + i, 0x11, a1); //D1L/RR
+			ym2612_write_reg(0, 0x98 + i, 0x00, a1); //SSG EG
+			   
+			//Operator 4
+			ym2612_write_reg(0, 0x3C + i, 0x01, a1); //DT1/Mul
+			ym2612_write_reg(0, 0x4C + i, 0x00, a1); //Total Level
+			ym2612_write_reg(0, 0x5C + i, 0x94, a1); //RS/AR
+			ym2612_write_reg(0, 0x6C + i, 0x07, a1); //AM/D1R
+			ym2612_write_reg(0, 0x7C + i, 0x02, a1); //D2R
+			ym2612_write_reg(0, 0x8C + i, 0xA6, a1); //D1L/RR
+			ym2612_write_reg(0, 0x9C + i, 0x00, a1); //SSG EG
+
+			ym2612_write_reg(0, 0xB0 + i, 0x32, a1); // Ch FB/Algo
+			ym2612_write_reg(0, 0xB4 + i, 0xC0, a1); // Both Spks on
+			ym2612_write_reg(0, 0xA4 + i, 0x22, a1); // Set Freq MSB
+			ym2612_write_reg(0, 0xA0 + i, 0x69, a1); // Freq LSB
+		}
+		ym2612_write_reg(0, 0xB4, 0xC0, a1); // Both speakers on
+		ym2612_write_reg(0, 0x28, 0x00, a1); // Key off
+	}
+}
+
+//uint16_t CalcFNumber(float note)
+//{
+//  const uint32_t clockFrq = 8000000;
+//  return (144*note*(pow(2, 20))/clockFrq) / pow(2, 4-1);
+//}
+
+void play(){
+  int offset = 0;
+  int octave = 2;
+  int NOTE_A = 1038;//CalcFNumber();
+  int lsb = NOTE_A % 256; //fNumberNotes[key] % 256;
+  int msb = NOTE_A >> 8; //fNumberNotes[key] >> 8; 
+  ym2612_write_reg(0, 0xA4 + offset, (octave << 3) + msb, 0);
+  ym2612_write_reg(0, 0xA0 + offset, lsb, 0);
+//  ym2612_w(0, 0x28, 0xF0 + offset + (setA1 << 2));
+
+ym2612_write_reg(0, 0x28, 0xF0, 0); //Reg 0x28, Value 0xF0, A1 LOW. Key On
+//ym2612_write_reg(0, 0x28, 0x00, 0); //Reg 0x28, Value 0xF0, A1 LOW. Key Off
+}
+
 int main(){
-	//device_reset_ym2612(0);
+	device_start_ym2612(0, 8000000);
+	device_reset_ym2612(0);
+
+	setup_instrument();
+	play();
+
 	StartStream();
 	while (true){
-		WaveOutLinuxCallBack();
+		WaveOutCallBack();
 	}
 	return 0;
 }
