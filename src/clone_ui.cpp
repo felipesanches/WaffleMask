@@ -30,8 +30,28 @@ void CloneUI::program_loop(){
 void CloneUI::update(double delta_time){
 }
 
-#define SLIDER_WIDTH 20
-void vertical_slider(int x, int y, const char* name, int value){
+#define VSLIDER_WIDTH 20
+#define VSLIDER_HEIGHT 150
+void CloneUI::vertical_slider(int x, int y, const char* name, int value, int max_value){
+	int width = VSLIDER_WIDTH - 6;
+	int height = VSLIDER_HEIGHT - 2 * 25;
+	SDL_Rect rect;
+
+	// slider body
+	rect.x = x;
+	rect.y = y + 25;
+	rect.w = width;
+	rect.h = height;
+	SDL_SetRenderDrawColor(m_program_window_renderer, 128, 128, 128, 255);
+	SDL_RenderFillRect(m_program_window_renderer, &rect);
+
+	// slider level
+	rect.x = x - 2;
+	rect.y = y + 25 + (height-5) * (value/float(max_value));
+	rect.w = width + 4;
+	rect.h = 5;
+	SDL_SetRenderDrawColor(m_program_window_renderer, 220, 220, 220, 255);
+	SDL_RenderFillRect(m_program_window_renderer, &rect);
 }
 
 void CloneUI::draw(){
@@ -71,11 +91,11 @@ void CloneUI::draw(){
 		SDL_RenderFillRect(m_program_window_renderer, &rect);
 
 		// ADSR sliders:
-		vertical_slider(x + 0*SLIDER_WIDTH, y, "A",  31);
-		vertical_slider(x + 1*SLIDER_WIDTH, y, "D",  14);
-		vertical_slider(x + 2*SLIDER_WIDTH, y, "S",  1);
-		vertical_slider(x + 3*SLIDER_WIDTH, y, "D2", 7);
-		vertical_slider(x + 4*SLIDER_WIDTH, y, "R",  15);
+		vertical_slider(x + 0 * VSLIDER_WIDTH, y, "A",  31, 31);
+		vertical_slider(x + 1 * VSLIDER_WIDTH, y, "D",  14, 31);
+		vertical_slider(x + 2 * VSLIDER_WIDTH, y, "S",  1,  31);
+		vertical_slider(x + 3 * VSLIDER_WIDTH, y, "D2", 7,  31);
+		vertical_slider(x + 4 * VSLIDER_WIDTH, y, "R",  15, 15);
 
 		// Y coordinate for the next operator widget:
 		y += OPERATOR_WIDGET_HEIGHT;
