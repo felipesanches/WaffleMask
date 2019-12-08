@@ -3,6 +3,11 @@ This is an attempt to write a free clone of DefleMask.
 
 I have no idea if I will ever actually make that happen, but I am for now having lots of fun while learning audio-programming.
 
+# Usage
+
+sudo modprobe snd-pcm-oss
+./clone
+
 
 # Licensing
 
