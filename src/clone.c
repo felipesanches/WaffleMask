@@ -191,16 +191,38 @@ UINT16 CalcFNumber(float note)
   return (144*note*(pow(2, 20))/clockFrq) / pow(2, 4-1);
 }
 
+#define octaveShift 0 //for now...
+
+float NoteToFrequency(UINT8 note)
+{
+    //Elegant note/freq system by diegodorado
+    //Check out his project at https://github.com/diegodorado/arduinoProjects/tree/master/ym2612
+    const static float freq[12] = 
+    {
+      //You can create your own note frequencies here. C4#-C5. There should be twelve entries.
+      //YM3438 datasheet note set
+      277.2, 293.7, 311.1, 329.6, 349.2, 370.0, 392.0, 415.3, 440.0, 466.2, 493.9, 523.3
+
+    }; 
+    const static float multiplier[] = 
+    {
+      0.03125f,   0.0625f,   0.125f,   0.25f,   0.5f,   1.0f,   2.0f,   4.0f,   8.0f,   16.0f,   32.0f 
+    }; 
+    float f = freq[note%12];
+    return f*multiplier[(note/12)+octaveShift];
+}
+
 void play(UINT8 note, UINT8 velocity){
   int offset = 0;
   int octave = 2;
-  int NOTE = 1038; // CalcFNumber(note);
-  int lsb = NOTE % 256; //fNumberNotes[key] % 256;
-  int msb = NOTE >> 8; //fNumberNotes[key] >> 8; 
+  int NOTE = CalcFNumber(NoteToFrequency(note));
+  int lsb = NOTE % 256;
+  int msb = NOTE >> 8;
   ym2612_write_reg(0, 0xA4 + offset, (octave << 3) + msb, 0);
   ym2612_write_reg(0, 0xA0 + offset, lsb, 0);
 //  ym2612_w(0, 0x28, 0xF0 + offset + (setA1 << 2));
 
+  ym2612_write_reg(0, 0x28, 0, 0); // Turn it OFF before playing anything
   ym2612_write_reg(0, 0x28, velocity != 0 ? 0xF0 : 0, 0); //Reg 0x28, Value 0xF0, A1 LOW. Key On
   //printf("play %02X %02X\n", note, velocity);
 }
