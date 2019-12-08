@@ -49,7 +49,7 @@ CFLAGS := -O3 -g0 -Wno-unused-variable -Wno-unused-value $(CFLAGS)
 else
 CFLAGS := -g -Wall $(CFLAGS)
 endif
-LDFLAGS := -lm -lz -lSDL2 -lpthread $(LDFLAGS)
+LDFLAGS := -lm -lz -lSDL2 -lSDL2_ttf -lpthread $(LDFLAGS)
 
 
 EMUOBJS = \

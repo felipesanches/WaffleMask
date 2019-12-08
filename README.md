@@ -24,3 +24,8 @@ This project also includes "GPL2-or-later" code from VGMPlay/MAME.
 
 DMF file format parsing done with "New BSD" code written by Vincent "MooZ" Cruz:
 - https://github.com/BlockoS/dmf-player
+
+# Typeface
+
+Tomorrow-Regular.ttf, by Monica Rizzolli & Tony de Marco
+Published under the Open Font License

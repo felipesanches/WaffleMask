@@ -1,3 +1,4 @@
+#include <string>
 #include "clone_ui.h"
 
 #define OPERATOR_WIDGET_WIDTH 500
@@ -14,12 +15,14 @@ CloneUI::CloneUI(){
 
 void CloneUI::program_loop(){
 	bool keep_running = true;
+	TTF_Init();
+	m_font = TTF_OpenFont("Tomorrow-Regular.ttf", 14);
 	while(keep_running){
-	while(SDL_PollEvent(&m_program_window_event) > 0){
-		switch(m_program_window_event.type){
-			case SDL_QUIT:
-				keep_running = false;
-			}
+		while(SDL_PollEvent(&m_program_window_event) > 0){
+			switch(m_program_window_event.type){
+				case SDL_QUIT:
+					keep_running = false;
+				}
 		}
 
 		update(1.0/60.0);
@@ -30,12 +33,27 @@ void CloneUI::program_loop(){
 void CloneUI::update(double delta_time){
 }
 
-#define VSLIDER_WIDTH 20
-#define VSLIDER_HEIGHT 150
+void CloneUI::draw_text(int x, int y, std::string text_str){
+	SDL_Color textColor = { 255, 255, 255, 0 };
+	SDL_Surface* textSurface = TTF_RenderText_Solid(m_font, text_str.c_str(), textColor);
+	SDL_Texture* text = SDL_CreateTextureFromSurface(m_program_window_renderer, textSurface);
+	int text_width = textSurface->w;
+	int text_height = textSurface->h;
+	SDL_FreeSurface(textSurface);
+	SDL_Rect renderQuad = { x, y, text_width, text_height };
+	SDL_RenderCopy(m_program_window_renderer, text, NULL, &renderQuad);
+	SDL_DestroyTexture(text);
+}
+
+#define VSLIDER_WIDTH 24
+#define VSLIDER_HEIGHT 160
 void CloneUI::vertical_slider(int x, int y, const char* name, int value, int max_value){
 	int width = VSLIDER_WIDTH - 6;
 	int height = VSLIDER_HEIGHT - 2 * 25;
 	SDL_Rect rect;
+
+	draw_text(x - 2 + (strlen(name) == 1 ? 5 : 0), y + 5, std::string(name));
+	draw_text(x + (value < 10 ? 5 : 0), y + 28 + height, std::to_string(value));
 
 	// slider body
 	rect.x = x;
