@@ -30,6 +30,10 @@ void CloneUI::program_loop(){
 void CloneUI::update(double delta_time){
 }
 
+#define SLIDER_WIDTH 20
+void vertical_slider(int x, int y, const char* name, int value){
+}
+
 void CloneUI::draw(){
 	SDL_RenderClear(m_program_window_renderer);
 
@@ -43,23 +47,38 @@ void CloneUI::draw(){
 	SDL_SetRenderDrawColor(m_program_window_renderer, 32, 32, 32, 32);
 	SDL_RenderFillRect(m_program_window_renderer, &rect);
 
-	for (int i=1; i<4; i++){
-		// Separator line between the operator widgets:
-		SDL_SetRenderDrawColor(m_program_window_renderer, 48, 198, 98, 255);
-		SDL_RenderDrawLine(m_program_window_renderer,
-		                                           MARGIN + PADDING,     MARGIN + i*OPERATOR_WIDGET_HEIGHT,
-		                   MARGIN + OPERATOR_WIDGET_WIDTH - PADDING,     MARGIN + i*OPERATOR_WIDGET_HEIGHT);		
-	}
-
+	int x = 0, y = MARGIN;
 	// Render operators:
 	for (int i=0; i<4; i++){
+		x = MARGIN;
+
+		if (i>0){
+			// Separator line between the operator widgets:
+			SDL_SetRenderDrawColor(m_program_window_renderer, 48, 198, 98, 255);
+			SDL_RenderDrawLine(m_program_window_renderer,
+			                                           x + PADDING,   y,
+			                   x + OPERATOR_WIDGET_WIDTH - PADDING,   y);
+		}
+
+		x += PADDING;
+
 		// Graph area:
-		rect.x = MARGIN + 175;
-		rect.y = MARGIN + i*OPERATOR_WIDGET_HEIGHT + 25;
+		rect.x = x + 135;
+		rect.y = y + 25;
 		rect.w = 265;
 		rect.h = 64;
 		SDL_SetRenderDrawColor(m_program_window_renderer, 0, 0, 0, 255);
 		SDL_RenderFillRect(m_program_window_renderer, &rect);
+
+		// ADSR sliders:
+		vertical_slider(x + 0*SLIDER_WIDTH, y, "A",  31);
+		vertical_slider(x + 1*SLIDER_WIDTH, y, "D",  14);
+		vertical_slider(x + 2*SLIDER_WIDTH, y, "S",  1);
+		vertical_slider(x + 3*SLIDER_WIDTH, y, "D2", 7);
+		vertical_slider(x + 4*SLIDER_WIDTH, y, "R",  15);
+
+		// Y coordinate for the next operator widget:
+		y += OPERATOR_WIDGET_HEIGHT;
 	}
 
 	SDL_SetRenderDrawColor(m_program_window_renderer, 0, 0, 0, 255);
