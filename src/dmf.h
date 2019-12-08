@@ -24,6 +24,7 @@ class FM_Instrument {
 
 class DMF_Module {
   public:
+	unsigned char format_string[17];
 	unsigned char system;
 	unsigned char num_instruments;
 	FM_Instrument* fm_instruments;

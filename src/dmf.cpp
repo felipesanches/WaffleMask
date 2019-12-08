@@ -1,20 +1,24 @@
 #include <stdio.h>
+#include <zlib.h>
 #include "dmf.h"
 
 DMF_Module* DMF_Module::load_dmf(const char* filename){
 	DMF_Module* module = new DMF_Module;
-	FILE* f = fopen(filename, "rb");
+	gzFile f = gzopen(filename, "rb");
 	if (!f)
 		return NULL;
 
 	int skip = 0;
-	skip += 16; // Format String ".DelekDefleMask."
-	skip ++; // file version
-        fseek(f, skip, SEEK_SET);
+	// Format String ".DelekDefleMask."
+	gzread(f, &module->format_string, 16);
+	module->format_string[16] = 0;
+	printf("Format string: '%s'\n", module->format_string);
 
-	fread(&module->system, sizeof(unsigned char), 1, f);
+        gzseek(f, 1, SEEK_CUR); // file version
+
+	gzread(f, &module->system, sizeof(unsigned char));
 	printf("System type: %02X\n", module->system);
 
-	fclose(f);
+	gzclose(f);
 	return module;
 }
