@@ -59,7 +59,7 @@ EMUOBJS = \
 
 MAINOBJS = \
 	obj/src/clone.o \
-	obj/src/dfm.o
+	obj/src/dmf.o
  
 
 all:	clone

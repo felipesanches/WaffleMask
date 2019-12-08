@@ -1,8 +1,8 @@
 #include <stdio.h>
-#include "dfm.h"
+#include "dmf.h"
 
-DFM_Module* DFM_Module::load_dfm(const char* filename){
-	DFM_Module* module = new DFM_Module;
+DMF_Module* DMF_Module::load_dmf(const char* filename){
+	DMF_Module* module = new DMF_Module;
 	FILE* f = fopen(filename, "rb");
 	if (!f)
 		return NULL;

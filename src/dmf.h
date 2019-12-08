@@ -22,11 +22,11 @@ class FM_Instrument {
 	FM_Operator operators[4];
 };
 
-class DFM_Module {
+class DMF_Module {
   public:
 	unsigned char system;
 	unsigned char num_instruments;
 	FM_Instrument* fm_instruments;
 
-	DFM_Module* load_dfm(const char* filename);
+	DMF_Module* load_dmf(const char* filename);
 };
