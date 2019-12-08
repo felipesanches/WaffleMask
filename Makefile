@@ -58,14 +58,15 @@ EMUOBJS = \
 	obj/src/chips/2612intf.o
 
 MAINOBJS = \
-	obj/src/clone.o
+	obj/src/clone.o \
+	obj/src/dfm.o
  
 
 all:	clone
 
 clone:	$(EMUOBJS) $(MAINOBJS)
 	@echo Linking clone ...
-	@$(CC) $(MAINOBJS) $(EMUOBJS) $(LDFLAGS) -o clone
+	@$(CXX) $(MAINOBJS) $(EMUOBJS) $(LDFLAGS) -o clone
 	@echo Done.
 
 
@@ -73,13 +74,13 @@ clone:	$(EMUOBJS) $(MAINOBJS)
 obj/src/chips/%.o:	src/chips/%.c
 	@echo Compiling $< ...
 	@mkdir -p $(@D)
-	@$(CC) $(CFLAGS) $(EMUFLAGS) -c $< -o $@
+	@$(CXX) $(CXXFLAGS) $(EMUFLAGS) -c $< -o $@
 
 # compile the main c-files
-obj/src/%.o:	src/%.c
+obj/src/%.o:	src/%.cpp
 	@echo Compiling $< ...
 	@mkdir -p $(@D)
-	@$(CC) $(CFLAGS) $(MAINFLAGS) -c $< -o $@
+	@$(CXX) $(CXXFLAGS) $(MAINFLAGS) -c $< -o $@
 
 clean:
 	@echo Deleting object files ...

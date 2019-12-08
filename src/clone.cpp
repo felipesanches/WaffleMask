@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <math.h>
+#include "dfm.h"
 
 UINT32 sampleRate = 44100*1000;
 UINT8 CHIP_SAMPLING_MODE = 0;
@@ -237,6 +238,9 @@ int main(){
 		exit (-1);
 	}
 
+	DFM_Module* module = new DFM_Module;
+	module->load_dfm("data/sample.dfm");
+	
 	device_start_ym2612(0, 8000000);
 	device_reset_ym2612(0);
 	setup_instrument();
