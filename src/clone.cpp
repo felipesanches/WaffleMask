@@ -137,49 +137,19 @@ void ym2612_write_reg(UINT8 chipid, UINT8 addr, UINT8 value, UINT8 a1){
 } 
 
 
-void setup_instrument(){
+void setup_instrument(DMF::Instrument& instr){
  	for(int a1 = 0; a1<=1; a1++){
 		for(int i=0; i<3; i++){
-			//Operator 1
-			ym2612_write_reg(0, 0x30 + i, 0x71, a1); //DT1/Mul
-			ym2612_write_reg(0, 0x40 + i, 0x23, a1); //Total Level
-			ym2612_write_reg(0, 0x50 + i, 0x5F, a1); //RS/AR
-			ym2612_write_reg(0, 0x60 + i, 0x05, a1); //AM/D1R
-			ym2612_write_reg(0, 0x70 + i, 0x02, a1); //D2R
-			ym2612_write_reg(0, 0x80 + i, 0x11, a1); //D1L/RR
-			ym2612_write_reg(0, 0x90 + i, 0x00, a1); //SSG EG
-
-			//Operator 2
-			ym2612_write_reg(0, 0x34 + i, 0x0D, a1); //DT1/Mul
-			ym2612_write_reg(0, 0x44 + i, 0x2D, a1); //Total Level
-			ym2612_write_reg(0, 0x54 + i, 0x99, a1); //RS/AR
-			ym2612_write_reg(0, 0x64 + i, 0x05, a1); //AM/D1R
-			ym2612_write_reg(0, 0x74 + i, 0x02, a1); //D2R
-			ym2612_write_reg(0, 0x84 + i, 0x11, a1); //D1L/RR
-			ym2612_write_reg(0, 0x94 + i, 0x00, a1); //SSG EG
-
-			//Operator 3
-			ym2612_write_reg(0, 0x38 + i, 0x33, a1); //DT1/Mul
-			ym2612_write_reg(0, 0x48 + i, 0x26, a1); //Total Level
-			ym2612_write_reg(0, 0x58 + i, 0x5F, a1); //RS/AR
-			ym2612_write_reg(0, 0x68 + i, 0x05, a1); //AM/D1R
-			ym2612_write_reg(0, 0x78 + i, 0x02, a1); //D2R
-			ym2612_write_reg(0, 0x88 + i, 0x11, a1); //D1L/RR
-			ym2612_write_reg(0, 0x98 + i, 0x00, a1); //SSG EG
-			   
-			//Operator 4
-			ym2612_write_reg(0, 0x3C + i, 0x01, a1); //DT1/Mul
-			ym2612_write_reg(0, 0x4C + i, 0x00, a1); //Total Level
-			ym2612_write_reg(0, 0x5C + i, 0x94, a1); //RS/AR
-			ym2612_write_reg(0, 0x6C + i, 0x07, a1); //AM/D1R
-			ym2612_write_reg(0, 0x7C + i, 0x02, a1); //D2R
-			ym2612_write_reg(0, 0x8C + i, 0xA6, a1); //D1L/RR
-			ym2612_write_reg(0, 0x9C + i, 0x00, a1); //SSG EG
-
-			ym2612_write_reg(0, 0xB0 + i, 0x32, a1); // Ch FB/Algo
-			ym2612_write_reg(0, 0xB4 + i, 0xC0, a1); // Both Spks on
-			ym2612_write_reg(0, 0xA4 + i, 0x22, a1); // Set Freq MSB
-			ym2612_write_reg(0, 0xA0 + i, 0x69, a1); // Freq LSB
+			for(int j=0; j<4; j++){
+				ym2612_write_reg(0, 0x30 + 4*j + i, instr.fm.op[j].DT1 & 0x07 << 4 | instr.fm.op[j].MULT & 0x0F, a1); //DT1/Multi
+				ym2612_write_reg(0, 0x40 + 4*j + i, instr.fm.op[j].TL, a1); //Total Level
+				ym2612_write_reg(0, 0x50 + 4*j + i, instr.fm.op[j].RS & 0x07 << 5 | instr.fm.op[j].AR & 0x1F, a1); //RS/AR
+				ym2612_write_reg(0, 0x60 + 4*j + i, instr.fm.op[j].AM & 0x01 << 7 | instr.fm.op[j].D1R & 0x7F, a1); //AM/D1R
+				ym2612_write_reg(0, 0x70 + 4*j + i, instr.fm.op[j].D2R, a1); //D2R
+				ym2612_write_reg(0, 0x80 + 4*j + i, instr.fm.op[j].D1R & 0x0F << 4 | instr.fm.op[j].RR & 0x0F, a1); //D1L/RR
+				ym2612_write_reg(0, 0x90 + 4*j + i, instr.fm.op[j].SSGMODE, a1); //SSG EG
+			}
+			ym2612_write_reg(0, 0xB0 + i, instr.fm.FB & 0x1F << 3 | instr.fm.ALG & 0x07, a1); // Ch FB/Algo
 		}
 		ym2612_write_reg(0, 0xB4, 0xC0, a1); // Both speakers on
 		ym2612_write_reg(0, 0x28, 0x00, a1); // Key off
@@ -245,7 +215,7 @@ int main(){
 
 	device_start_ym2612(0, 8000000);
 	device_reset_ym2612(0);
-	setup_instrument();
+	setup_instrument(song.instrument[0]);
 	StartStream();
 
 	pthread_t playback_thread;

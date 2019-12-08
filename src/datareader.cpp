@@ -185,8 +185,24 @@ bool DataReader::read(Instrument& inst) {
         if(ok) { ok = read(inst.std.wave); }
     }
     else {
-        fprintf(stderr, "FM instruments are not yet supported!\n");
-        ok = false;
+        if(ok) { ok = read(inst.fm.ALG); }
+        if(ok) { ok = read(inst.fm.FB); }
+        if(ok) { ok = read(inst.fm.LFO); }
+        if(ok) { ok = read(inst.fm.LFO2); }
+	for (uint8_t i=0; i<4; i++){
+	        if(ok) { ok = read(inst.fm.op[i].AM); }
+	        if(ok) { ok = read(inst.fm.op[i].AR); }
+	        if(ok) { ok = read(inst.fm.op[i].D1R); }
+	        if(ok) { ok = read(inst.fm.op[i].MULT); }
+	        if(ok) { ok = read(inst.fm.op[i].RR); }
+	        if(ok) { ok = read(inst.fm.op[i].SL); }
+	        if(ok) { ok = read(inst.fm.op[i].TL); }
+	        if(ok) { ok = read(inst.fm.op[i].DT2); }
+	        if(ok) { ok = read(inst.fm.op[i].RS); }
+	        if(ok) { ok = read(inst.fm.op[i].DT1); }
+	        if(ok) { ok = read(inst.fm.op[i].D2R); }
+	        if(ok) { ok = read(inst.fm.op[i].SSGMODE); }
+	}
     }
     return ok;
 }

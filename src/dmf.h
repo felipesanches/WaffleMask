@@ -170,6 +170,27 @@ struct Instrument {
         /// Wavetable macro.
         Envelope wave;
     };
+    struct FM_Operator {
+        uint8_t AM;
+        uint8_t AR;
+        uint8_t D1R;
+        uint8_t MULT;
+        uint8_t RR;
+        uint8_t SL;
+        uint8_t TL;
+        uint8_t DT2;
+        uint8_t RS;
+        uint8_t DT1;
+        uint8_t D2R;
+        uint8_t SSGMODE; // (BIT 4 = 0 Disabled, 1 Enabled, BITS 0,1,2 SSG_MODE)
+    };
+    struct FM {
+        uint8_t ALG;
+        uint8_t FB;
+        uint8_t LFO; // (FMS on YM2612, PMS on YM2151)
+        uint8_t LFO2; // (AMS on YM2612, AMS on YM2151)
+	FM_Operator op[4];
+    };
     /// Name.
     String   name;
     /// Mode.
@@ -177,7 +198,8 @@ struct Instrument {
     ///    * FM = 1
     uint8_t  mode;
     /// Standard instrument data.
-    Standard std; 
+    Standard std;
+    FM fm;
 };
 
 /// Wavetable.
