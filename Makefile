@@ -49,8 +49,7 @@ CFLAGS := -O3 -g0 -Wno-unused-variable -Wno-unused-value $(CFLAGS)
 else
 CFLAGS := -g -Wall $(CFLAGS)
 endif
-# libm (math library) and libz (zlib)
-LDFLAGS := -lm -lz -lpthread $(LDFLAGS)
+LDFLAGS := -lm -lz -lSDL2 -lpthread $(LDFLAGS)
 
 
 EMUOBJS = \
@@ -59,6 +58,7 @@ EMUOBJS = \
 
 MAINOBJS = \
 	obj/src/clone.o \
+	obj/src/clone_ui.o \
 	obj/src/dmf.o \
 	obj/src/datareader.o
  

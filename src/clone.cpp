@@ -12,6 +12,7 @@
 #include <pthread.h>
 #include <math.h>
 #include "datareader.h"
+#include "clone_ui.h"
 
 UINT32 sampleRate = 44100*1000;
 UINT8 CHIP_SAMPLING_MODE = 0;
@@ -42,6 +43,93 @@ INT32* CurBufL;
 INT32* CurBufR;
 INT32* StreamBufs[2];
 
+
+void ym2612_write_reg(UINT8 chipid, UINT8 addr, UINT8 value, UINT8 a1){
+	ym2612_w(chipid, a1 << 1, addr);
+	ym2612_w(chipid, a1 << 1 | 1, value);  
+}
+
+
+UINT16 CalcFNumber(float note)
+{
+	  const UINT32 clockFrq = 8000000;
+	  return (144*note*(pow(2, 20))/clockFrq) / pow(2, 4-1);
+}
+
+#define octaveShift 0 //for now...
+
+float NoteToFrequency(UINT8 note)
+{
+	//Elegant note/freq system by diegodorado
+	//Check out his project at https://github.com/diegodorado/arduinoProjects/tree/master/ym2612
+	const static float freq[12] = {
+		//You can create your own note frequencies here. C4#-C5. There should be twelve entries.
+		//YM3438 datasheet note set
+		277.2, 293.7, 311.1, 329.6, 349.2, 370.0, 392.0, 415.3, 440.0, 466.2, 493.9, 523.3
+	}; 
+	const static float multiplier[] = {
+		0.03125f,   0.0625f,   0.125f,   0.25f,   0.5f,   1.0f,   2.0f,   4.0f,   8.0f,   16.0f,   32.0f 
+	}; 
+	float f = freq[note%12];
+	return f * multiplier[(note/12) + octaveShift];
+}
+
+void play(UINT8 note, UINT8 velocity){
+	int offset = 0;
+	int octave = 2;
+	int NOTE = CalcFNumber(NoteToFrequency(note));
+	int lsb = NOTE % 256;
+	int msb = NOTE >> 8;
+	ym2612_write_reg(0, 0xA4 + offset, (octave << 3) + msb, 0);
+	ym2612_write_reg(0, 0xA0 + offset, lsb, 0);
+
+	ym2612_write_reg(0, 0x28, 0, 0); // Turn it OFF before playing anything
+	ym2612_write_reg(0, 0x28, velocity != 0 ? 0xF0 : 0, 0); //Reg 0x28, Value 0xF0, A1 LOW. Key On
+}
+
+void* MidiInputThread(void* _null_ptr){
+	int fd;
+	unsigned char buf[128];
+	int l;
+
+	if ((fd = open("/dev/midi1", O_RDONLY, 0)) == -1){
+		perror ("open /dev/midi1");
+		exit (-1);
+	}
+
+	#define WAITING_COMMAND 0
+	#define WAITING_NOTE 1
+	#define WAITING_VELOCITY 2
+	UINT8 state = WAITING_COMMAND;
+	UINT8 note, velocity;
+	while ((l = read (fd, buf, sizeof (buf))) != -1){
+		int i;
+		for (i = 0; i < l; i++){
+			if (state == WAITING_COMMAND && buf[i] == 0x90){
+				state = WAITING_NOTE;
+				continue;
+			}
+
+			if (state == WAITING_NOTE){
+				note = buf[i];
+				state = WAITING_VELOCITY;
+				continue;
+			}
+
+			if (state == WAITING_VELOCITY){
+				velocity = buf[i];
+				state = WAITING_COMMAND;
+				play(note, velocity);
+				continue;
+			}
+		}
+	}
+
+	close (fd);
+	return NULL;
+}
+
+
 UINT32 FillBuffer(WAVE_16BS* Buffer, UINT32 BufferSize)
 {
 	ym2612_stream_update(0, StreamBufs, BufferSize);
@@ -53,9 +141,7 @@ UINT32 FillBuffer(WAVE_16BS* Buffer, UINT32 BufferSize)
 	return BufferSize;
 }
 
-
-void* PlaybackThread(void* _null_ptr)
-{
+void* PlaybackThread(void* _null_ptr){
 	UINT32 WrtSmpls;
 	
 	if (! WaveOutOpen){
@@ -70,8 +156,7 @@ void* PlaybackThread(void* _null_ptr)
 	return NULL;
 }
 
-UINT8 StopStream(void)
-{
+UINT8 StopStream(void){
 	if (! WaveOutOpen)
 		return 0xD8;	// Thread is not active
 	
@@ -80,8 +165,7 @@ UINT8 StopStream(void)
 	return 0x00;
 }
 
-UINT8 StartStream()
-{
+UINT8 StartStream(){
 	UINT32 RetVal;
 	UINT32 ArgVal;
 	
@@ -131,14 +215,8 @@ UINT8 StartStream()
 }
 
 
-void ym2612_write_reg(UINT8 chipid, UINT8 addr, UINT8 value, UINT8 a1){
-          ym2612_w(chipid, a1 << 1, addr);
-          ym2612_w(chipid, a1 << 1 | 1, value);  
-} 
-
-
 void setup_instrument(DMF::Instrument& instr){
- 	for(int a1 = 0; a1<=1; a1++){
+	for(int a1 = 0; a1<=1; a1++){
 		for(int i=0; i<3; i++){
 			for(int j=0; j<4; j++){
 				ym2612_write_reg(0, 0x30 + 4*j + i, instr.fm.op[j].DT1 & 0x07 << 4 | instr.fm.op[j].MULT & 0x0F, a1); //DT1/Multi
@@ -156,58 +234,8 @@ void setup_instrument(DMF::Instrument& instr){
 	}
 }
 
-UINT16 CalcFNumber(float note)
-{
-  const UINT32 clockFrq = 8000000;
-  return (144*note*(pow(2, 20))/clockFrq) / pow(2, 4-1);
-}
-
-#define octaveShift 0 //for now...
-
-float NoteToFrequency(UINT8 note)
-{
-    //Elegant note/freq system by diegodorado
-    //Check out his project at https://github.com/diegodorado/arduinoProjects/tree/master/ym2612
-    const static float freq[12] = 
-    {
-      //You can create your own note frequencies here. C4#-C5. There should be twelve entries.
-      //YM3438 datasheet note set
-      277.2, 293.7, 311.1, 329.6, 349.2, 370.0, 392.0, 415.3, 440.0, 466.2, 493.9, 523.3
-
-    }; 
-    const static float multiplier[] = 
-    {
-      0.03125f,   0.0625f,   0.125f,   0.25f,   0.5f,   1.0f,   2.0f,   4.0f,   8.0f,   16.0f,   32.0f 
-    }; 
-    float f = freq[note%12];
-    return f*multiplier[(note/12)+octaveShift];
-}
-
-void play(UINT8 note, UINT8 velocity){
-  int offset = 0;
-  int octave = 2;
-  int NOTE = CalcFNumber(NoteToFrequency(note));
-  int lsb = NOTE % 256;
-  int msb = NOTE >> 8;
-  ym2612_write_reg(0, 0xA4 + offset, (octave << 3) + msb, 0);
-  ym2612_write_reg(0, 0xA0 + offset, lsb, 0);
-//  ym2612_w(0, 0x28, 0xF0 + offset + (setA1 << 2));
-
-  ym2612_write_reg(0, 0x28, 0, 0); // Turn it OFF before playing anything
-  ym2612_write_reg(0, 0x28, velocity != 0 ? 0xF0 : 0, 0); //Reg 0x28, Value 0xF0, A1 LOW. Key On
-  //printf("play %02X %02X\n", note, velocity);
-}
 
 int main(){
-	int fd;
-	unsigned char buf[128];
-	int l;
-
-	if ((fd = open("/dev/midi1", O_RDONLY, 0)) == -1){
-		perror ("open /dev/midi1");
-		exit (-1);
-	}
-
 	DMF::Song song;
 	DMF::DataReader* datareader = new DMF::DataReader;
 	datareader->load("data/sample.dmf", song);
@@ -224,34 +252,14 @@ int main(){
 		return 1;
 	}
 
-	#define WAITING_COMMAND 0
-	#define WAITING_NOTE 1
-	#define WAITING_VELOCITY 2
-	UINT8 state = WAITING_COMMAND;
-	UINT8 note, velocity;
-	while ((l = read (fd, buf, sizeof (buf))) != -1){
-		int i;
-		for (i = 0; i < l; i++){
-			if (state == WAITING_COMMAND && buf[i] == 0x90){
-				state = WAITING_NOTE;
-				continue;
-			}
-
-			if (state == WAITING_NOTE){
-				note = buf[i];
-				state = WAITING_VELOCITY;
-				continue;
-			}
-
-			if (state == WAITING_VELOCITY){
-				velocity = buf[i];
-				state = WAITING_COMMAND;
-				play(note, velocity);
-				continue;
-			}
-		}
+	pthread_t midi_input_thread;
+	if(pthread_create(&midi_input_thread, NULL, MidiInputThread, NULL)) {
+		fprintf(stderr, "Error creating thread\n");
+		return 1;
 	}
 
-	close (fd);
+	CloneUI ui;
+	ui.program_loop();
+
 	return 0;
 }
