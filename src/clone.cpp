@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <math.h>
-#include "dmf.h"
+#include "datareader.h"
 
 UINT32 sampleRate = 44100*1000;
 UINT8 CHIP_SAMPLING_MODE = 0;
@@ -238,9 +238,11 @@ int main(){
 		exit (-1);
 	}
 
-	DMF_Module* module = new DMF_Module;
-	module->load_dmf("data/sample.dmf");
-	
+	DMF::Song song;
+	DMF::DataReader* datareader = new DMF::DataReader;
+	datareader->load("data/sample.dmf", song);
+	printf("System: %02X\n", song.infos.system);
+
 	device_start_ym2612(0, 8000000);
 	device_reset_ym2612(0);
 	setup_instrument();

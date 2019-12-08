@@ -1,24 +1,27 @@
-#include <stdio.h>
-#include <zlib.h>
+// Copyright (c) 2015-2019, Vincent "MooZ" Cruz and other contributors. All rights reserved.
+// Copyrights licensed under the New BSD License. See the accompanying LICENSE file for terms.
 #include "dmf.h"
 
-DMF_Module* DMF_Module::load_dmf(const char* filename){
-	DMF_Module* module = new DMF_Module;
-	gzFile f = gzopen(filename, "rb");
-	if (!f)
-		return NULL;
+#include <cstdio>
 
-	int skip = 0;
-	// Format String ".DelekDefleMask."
-	gzread(f, &module->format_string, 16);
-	module->format_string[16] = 0;
-	printf("Format string: '%s'\n", module->format_string);
-
-        gzseek(f, 1, SEEK_CUR); // file version
-
-	gzread(f, &module->system, sizeof(unsigned char));
-	printf("System type: %02X\n", module->system);
-
-	gzclose(f);
-	return module;
+namespace DMF {
+    
+/// Check if a pattern element is empty. 
+/// @param [in] src Pattern data.
+/// @param [in] count Effect count.
+/// @return true if the pattern element is empty, false otherwise.
+bool isEmpty(PatternData const& src, unsigned int count) {
+    bool empty_fx = true;
+    for(unsigned int i=0; (i<DMF_MAX_EFFECT_COUNT) && (i<count) && empty_fx; i++) {
+        empty_fx =  empty_fx
+                 && (src.effect[i].code == 0xffff)
+                 && (src.effect[i].data == 0xffff);
+    }
+    return    (src.octave == 0)
+           && (src.note == 0)
+           && (src.instrument == 0xffff)
+           && (src.volume == 0xffff)
+           && empty_fx;           
 }
+
+} // DMF

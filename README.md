@@ -11,11 +11,16 @@ sudo modprobe snd-pcm-oss
 
 # Licensing
 
-Affero GPL version 3
-Due to the usage of portions of MegaMIDI, by Diego Dorado.
+This project is licensed under Affero GPL version 3
+
+
+# Code reused from other projects
+Portions of "Affero GPLv3" code from MegaMIDI, by Diego Dorado.
 - https://www.aidanlawrence.com/mega-midi-a-playable-version-of-my-hardware-sega-genesis-synth/#welcome-to-register-hell
 - https://github.com/AidanHockey5/MegaMIDI
 
-This project also includes GPL2-or-later code from VGMPlay/MAME.
+This project also includes "GPL2-or-later" code from VGMPlay/MAME.
 - https://github.com/vgmrips/vgmplay
 
+DMF file format parsing done with "New BSD" code written by Vincent "MooZ" Cruz:
+- https://github.com/BlockoS/dmf-player
