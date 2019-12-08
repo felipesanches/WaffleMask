@@ -50,7 +50,7 @@ else
 CFLAGS := -g -Wall $(CFLAGS)
 endif
 # libm (math library) and libz (zlib)
-LDFLAGS := -lm -lz $(LDFLAGS)
+LDFLAGS := -lm -lz -lpthread $(LDFLAGS)
 
 
 EMUOBJS = \

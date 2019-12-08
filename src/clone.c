@@ -9,11 +9,13 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <pthread.h>
+#include <math.h>
 
-UINT32 sampleRate = 44100;
+UINT32 sampleRate = 44100*1000;
 UINT8 CHIP_SAMPLING_MODE = 0;
 INT32 CHIP_SAMPLE_RATE = 44100;
-UINT8 IsVGMInit = 1;
+UINT8 IsVGMInit = 0;
 stream_sample_t* DUMMYBUF[0x02] = {NULL, NULL};
 
 UINT16 nChannels = 2;
@@ -26,7 +28,7 @@ typedef struct waveform_16bit_stereo
 #define SAMPLESIZE    sizeof(WAVE_16BS)
 #define BUFSIZE_MAX   0x1000    // Maximum Buffer Size in Bytes
 #define BUFSIZELD   11      // Buffer Size
-#define AUDIOBUFFERS  200     // Maximum Buffer Count
+#define AUDIOBUFFERS  4     // Maximum Buffer Count
 //  BUFFERSIZE = 1 << BUFSIZELD (1 << 11 = 2048)
 //  1 Audio-Buffer = 11.6 msec
 static INT32 hWaveOut;
@@ -51,18 +53,20 @@ UINT32 FillBuffer(WAVE_16BS* Buffer, UINT32 BufferSize)
 }
 
 
-void WaveOutCallBack(void)
+void* PlaybackThread(void* _null_ptr)
 {
 	UINT32 WrtSmpls;
 	
 	if (! WaveOutOpen){
 		printf("Device not opened.\n");
-		return;
+		return NULL;
 	}
-		
-	WrtSmpls = FillBuffer(BufferOut, SAMPLES_PER_BUFFER);
-	write(hWaveOut, BufferOut, WrtSmpls * SAMPLESIZE);
-	return;
+
+	while (true){		
+		WrtSmpls = FillBuffer(BufferOut, SAMPLES_PER_BUFFER);
+		write(hWaveOut, BufferOut, WrtSmpls * SAMPLESIZE);
+	}
+	return NULL;
 }
 
 UINT8 StopStream(void)
@@ -181,24 +185,24 @@ void setup_instrument(){
 	}
 }
 
-//uint16_t CalcFNumber(float note)
-//{
-//  const uint32_t clockFrq = 8000000;
-//  return (144*note*(pow(2, 20))/clockFrq) / pow(2, 4-1);
-//}
+UINT16 CalcFNumber(float note)
+{
+  const UINT32 clockFrq = 8000000;
+  return (144*note*(pow(2, 20))/clockFrq) / pow(2, 4-1);
+}
 
 void play(UINT8 note, UINT8 velocity){
   int offset = 0;
   int octave = 2;
-  int NOTE_A = 1038;//CalcFNumber();
-  int lsb = NOTE_A % 256; //fNumberNotes[key] % 256;
-  int msb = NOTE_A >> 8; //fNumberNotes[key] >> 8; 
+  int NOTE = 1038; // CalcFNumber(note);
+  int lsb = NOTE % 256; //fNumberNotes[key] % 256;
+  int msb = NOTE >> 8; //fNumberNotes[key] >> 8; 
   ym2612_write_reg(0, 0xA4 + offset, (octave << 3) + msb, 0);
   ym2612_write_reg(0, 0xA0 + offset, lsb, 0);
 //  ym2612_w(0, 0x28, 0xF0 + offset + (setA1 << 2));
 
-  ym2612_write_reg(0, 0x28, velocity != 0 ? 0xF0 : 0x00, 0); //Reg 0x28, Value 0xF0, A1 LOW. Key On
-  printf("play %02X %02X\n", note, velocity);
+  ym2612_write_reg(0, 0x28, velocity != 0 ? 0xF0 : 0, 0); //Reg 0x28, Value 0xF0, A1 LOW. Key On
+  //printf("play %02X %02X\n", note, velocity);
 }
 
 int main(){
@@ -214,8 +218,13 @@ int main(){
 	device_start_ym2612(0, 8000000);
 	device_reset_ym2612(0);
 	setup_instrument();
-	play(0, 1);
 	StartStream();
+
+	pthread_t playback_thread;
+	if(pthread_create(&playback_thread, NULL, PlaybackThread, NULL)) {
+		fprintf(stderr, "Error creating thread\n");
+		return 1;
+	}
 
 	#define WAITING_COMMAND 0
 	#define WAITING_NOTE 1
@@ -224,8 +233,6 @@ int main(){
 	UINT8 note, velocity;
 	while ((l = read (fd, buf, sizeof (buf))) != -1){
 		int i;
-		WaveOutCallBack();
-
 		for (i = 0; i < l; i++){
 			if (state == WAITING_COMMAND && buf[i] == 0x90){
 				state = WAITING_NOTE;
