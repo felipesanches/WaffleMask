@@ -33,8 +33,7 @@ void CloneUI::program_loop(){
 void CloneUI::update(double delta_time){
 }
 
-void CloneUI::draw_text(int x, int y, std::string text_str){
-	SDL_Color textColor = { 255, 255, 255, 0 };
+void CloneUI::draw_text(int x, int y, std::string text_str, SDL_Color textColor){
 	SDL_Surface* textSurface = TTF_RenderText_Solid(m_font, text_str.c_str(), textColor);
 	SDL_Texture* text = SDL_CreateTextureFromSurface(m_program_window_renderer, textSurface);
 	int text_width = textSurface->w;
@@ -52,8 +51,9 @@ void CloneUI::vertical_slider(int x, int y, const char* name, int value, int max
 	int height = VSLIDER_HEIGHT - 2 * 25;
 	SDL_Rect rect;
 
-	draw_text(x - 2 + (strlen(name) == 1 ? 5 : 0), y + 5, std::string(name));
-	draw_text(x + (value < 10 ? 5 : 0), y + 28 + height, std::to_string(value));
+	SDL_Color WHITE = { 255, 255, 255, 0 };
+	draw_text(x - 2 + (strlen(name) == 1 ? 5 : 0), y + 5, std::string(name), WHITE);
+	draw_text(x + (value < 10 ? 5 : 0), y + 28 + height, std::to_string(value), WHITE);
 
 	// slider body
 	rect.x = x;
@@ -114,6 +114,13 @@ void CloneUI::draw(){
 		vertical_slider(x + 2 * VSLIDER_WIDTH, y, "S",  1,  31);
 		vertical_slider(x + 3 * VSLIDER_WIDTH, y, "D2", 7,  31);
 		vertical_slider(x + 4 * VSLIDER_WIDTH, y, "R",  15, 15);
+
+		// TL slider:
+		vertical_slider(x + 420, y, "TL",  18, 127);
+
+		// Operator number
+		SDL_Color YELLOW = { 255, 255, 0, 0 };
+		draw_text(x + 135, y + 5, std::string("OPERATOR  ") + std::to_string(i+1), YELLOW);
 
 		// Y coordinate for the next operator widget:
 		y += OPERATOR_WIDGET_HEIGHT;
