@@ -19,6 +19,7 @@ private:
     void horizontal_slider(int x, int y, const char* name, int value, int min_value, int max_value);
     void draw_text(int x, int y, std::string text_str, SDL_Color textColor);
     void draw_graph(int x, int y, DMF::Instrument::FM_Operator op);
+    void draw_wave(int x, int y);
 
     TTF_Font     *m_font;
     SDL_Window   *m_program_window;

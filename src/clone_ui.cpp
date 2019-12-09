@@ -2,14 +2,19 @@
 #include "clone_ui.h"
 #include "dmf.h"
 
+extern int* CurBufR;
+extern unsigned int SAMPLES_PER_BUFFER;
+
+#define WAVE_AREA_WIDTH SAMPLES_PER_BUFFER
+#define WAVE_AREA_HEIGHT 300
 #define OPERATOR_WIDGET_WIDTH 500
 #define OPERATOR_WIDGET_HEIGHT 160
 #define MARGIN 10
 #define PADDING 30
 
 CloneUI::CloneUI(){
-	SDL_CreateWindowAndRenderer(20 + OPERATOR_WIDGET_WIDTH,
-	                            20 + 4*OPERATOR_WIDGET_HEIGHT,
+	SDL_CreateWindowAndRenderer(3*MARGIN + OPERATOR_WIDGET_WIDTH + WAVE_AREA_WIDTH,
+	                            2*MARGIN + 4*OPERATOR_WIDGET_HEIGHT,
 	                            SDL_WINDOW_RESIZABLE,
 	                            &m_program_window, &m_program_window_renderer);                     
 }
@@ -43,6 +48,27 @@ void CloneUI::draw_text(int x, int y, std::string text_str, SDL_Color textColor)
 	SDL_Rect renderQuad = { x, y, text_width, text_height };
 	SDL_RenderCopy(m_program_window_renderer, text, NULL, &renderQuad);
 	SDL_DestroyTexture(text);
+}
+
+void CloneUI::draw_wave(int x, int y){
+	SDL_Rect rect;
+	rect.x = x;
+	rect.y = y;
+	rect.w = WAVE_AREA_WIDTH;
+	rect.h = WAVE_AREA_HEIGHT;
+	SDL_SetRenderDrawColor(m_program_window_renderer, 20, 20, 20, 255);
+	SDL_RenderFillRect(m_program_window_renderer, &rect);
+
+	SDL_SetRenderDrawColor(m_program_window_renderer, 48, 198, 98, 255);
+
+	for (int i=10; i<SAMPLES_PER_BUFFER-10; i++){
+		SDL_RenderDrawLine(m_program_window_renderer,
+		                   /* X1: */  x + i,
+		                   /* Y1: */  y + WAVE_AREA_HEIGHT/2 + CurBufR[i]/32,
+		                   /* X2: */  x + (i+1),
+		                   /* Y2: */  y + WAVE_AREA_HEIGHT/2 + CurBufR[(i+1)]/32
+		);
+	}
 }
 
 #define OPERATOR_GRAPH_AREA_WIDTH 265
@@ -171,6 +197,9 @@ song.instrument[active_instr].fm.op[0].RR = 15;
 #endif
 
 	SDL_RenderClear(m_program_window_renderer);
+
+	// WAVE FORMS:
+	draw_wave(OPERATOR_WIDGET_WIDTH + 2*MARGIN, MARGIN);
 
 	SDL_Rect rect;
 	rect.x = 10;
