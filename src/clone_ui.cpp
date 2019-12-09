@@ -86,9 +86,8 @@ void CloneUI::draw_graph(int x, int y, DMF::Instrument::FM_Operator op){
 	SDL_RenderDrawLine(m_program_window_renderer,
 	                   /* X1: */  x + OPERATOR_GRAPH_AREA_WIDTH * 0.9 * d,
 	                   /* Y1: */  y + OPERATOR_GRAPH_AREA_HEIGHT * (1 - s * TotalLevel),
-	                   /* X2: */  x + OPERATOR_GRAPH_AREA_WIDTH * 0.9 * d + \
-	                                 (OPERATOR_GRAPH_AREA_WIDTH * 0.9 * (1 - d) + OPERATOR_GRAPH_AREA_WIDTH * 0.1) * (1 - d2),
-	                   /* Y2: */  y + OPERATOR_GRAPH_AREA_HEIGHT - (op.D2R != 0 ? 0 : OPERATOR_GRAPH_AREA_HEIGHT * s * TotalLevel)
+	                   /* X2: */  x + OPERATOR_GRAPH_AREA_WIDTH * (0.9 * d + (1 - 0.9 * d) * r),
+	                   /* Y2: */  y + OPERATOR_GRAPH_AREA_HEIGHT - (op.RR != 0 ? 0 : OPERATOR_GRAPH_AREA_HEIGHT * s * TotalLevel)
 	);
 
 
@@ -96,9 +95,8 @@ void CloneUI::draw_graph(int x, int y, DMF::Instrument::FM_Operator op){
 	SDL_RenderDrawLine(m_program_window_renderer,
 	                   /* X1: */  x + OPERATOR_GRAPH_AREA_WIDTH * 0.9 * d,
 	                   /* Y1: */  y + OPERATOR_GRAPH_AREA_HEIGHT * (1 - s * TotalLevel),
-	                   /* X2: */  x + OPERATOR_GRAPH_AREA_WIDTH * 0.9 * d + \
-	                                 (OPERATOR_GRAPH_AREA_WIDTH * 0.9 * (1 - d) + OPERATOR_GRAPH_AREA_WIDTH * 0.1) * (1 - r),
-	                   /* Y2: */  y + OPERATOR_GRAPH_AREA_HEIGHT - (op.RR != 0 ? 0 : OPERATOR_GRAPH_AREA_HEIGHT * s * TotalLevel)
+	                   /* X2: */  x + OPERATOR_GRAPH_AREA_WIDTH * (0.9 * d + (1 - 0.9 * d) * d2),
+	                   /* Y2: */  y + OPERATOR_GRAPH_AREA_HEIGHT - (op.D2R != 0 ? 0 : OPERATOR_GRAPH_AREA_HEIGHT * s * TotalLevel)
 	);
 }
 
