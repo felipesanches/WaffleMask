@@ -15,6 +15,7 @@ public:
 
 private:
     void vertical_slider(int x, int y, const char* name, int value, int max_value);
+    void horizontal_slider(int x, int y, const char* name, int value, int min_value, int max_value);
     void draw_text(int x, int y, std::string text_str, SDL_Color textColor);
     TTF_Font     *m_font;
     SDL_Window   *m_program_window;

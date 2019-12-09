@@ -16,7 +16,7 @@ CloneUI::CloneUI(){
 void CloneUI::program_loop(){
 	bool keep_running = true;
 	TTF_Init();
-	m_font = TTF_OpenFont("Tomorrow-Regular.ttf", 14);
+	m_font = TTF_OpenFont("Tomorrow-Regular.ttf", 10);
 	while(keep_running){
 		while(SDL_PollEvent(&m_program_window_event) > 0){
 			switch(m_program_window_event.type){
@@ -72,6 +72,36 @@ void CloneUI::vertical_slider(int x, int y, const char* name, int value, int max
 	SDL_RenderFillRect(m_program_window_renderer, &rect);
 }
 
+#define OPERATOR_GRAPH_AREA_WIDTH 265
+#define OPERATOR_GRAPH_AREA_HEIGHT 64
+
+#define HSLIDER_WIDTH ((OPERATOR_GRAPH_AREA_WIDTH - MARGIN)/2)
+#define HSLIDER_HEIGHT 10
+void CloneUI::horizontal_slider(int x, int y, const char* name, int value, int min_value, int max_value){
+	int width = HSLIDER_WIDTH;
+	int height = HSLIDER_HEIGHT;
+	SDL_Rect rect;
+
+	SDL_Color WHITE = { 255, 255, 255, 0 };
+	draw_text(x, y - 2, std::string(name) + std::string(" ") + std::to_string(value), WHITE);
+	
+	// slider body
+	rect.x = x;
+	rect.y = y + height;
+	rect.w = width;
+	rect.h = height;
+	SDL_SetRenderDrawColor(m_program_window_renderer, 128, 128, 128, 255);
+	SDL_RenderFillRect(m_program_window_renderer, &rect);
+
+	// slider level
+	rect.x = x + (width-5) * ((value - min_value)/float(max_value - min_value));
+	rect.y = y + height;
+	rect.w = 5;
+	rect.h = height;
+	SDL_SetRenderDrawColor(m_program_window_renderer, 220, 220, 220, 255);
+	SDL_RenderFillRect(m_program_window_renderer, &rect);
+}
+
 void CloneUI::draw(){
 	SDL_RenderClear(m_program_window_renderer);
 
@@ -103,8 +133,8 @@ void CloneUI::draw(){
 		// Graph area:
 		rect.x = x + 135;
 		rect.y = y + 25;
-		rect.w = 265;
-		rect.h = 64;
+		rect.w = OPERATOR_GRAPH_AREA_WIDTH;
+		rect.h = OPERATOR_GRAPH_AREA_HEIGHT;
 		SDL_SetRenderDrawColor(m_program_window_renderer, 0, 0, 0, 255);
 		SDL_RenderFillRect(m_program_window_renderer, &rect);
 
@@ -121,6 +151,18 @@ void CloneUI::draw(){
 		// Operator number
 		SDL_Color YELLOW = { 255, 255, 0, 0 };
 		draw_text(x + 135, y + 5, std::string("OPERATOR  ") + std::to_string(i+1), YELLOW);
+
+		// MULT slider:
+		horizontal_slider(x + 135, y + 27 + OPERATOR_GRAPH_AREA_HEIGHT, "MULT",  1, 0, 15);
+
+		// DT slider:
+		horizontal_slider(x + 135, y + 32 + OPERATOR_GRAPH_AREA_HEIGHT + 2*HSLIDER_HEIGHT, "DT",  0, -2, 2);
+
+		// RS slider:
+		horizontal_slider(x + 135 + MARGIN + HSLIDER_WIDTH, y + 27 + OPERATOR_GRAPH_AREA_HEIGHT, "RS",  0, 0, 15);
+
+		// SSG-EG slider:
+		horizontal_slider(x + 135 + MARGIN + HSLIDER_WIDTH, y + 32 + OPERATOR_GRAPH_AREA_HEIGHT + 2*HSLIDER_HEIGHT, "SSG-EG",  0, 0, 15);
 
 		// Y coordinate for the next operator widget:
 		y += OPERATOR_WIDGET_HEIGHT;
