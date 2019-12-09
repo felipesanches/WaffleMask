@@ -2,6 +2,7 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include "dmf.h"
 
 class CloneUI
 {
@@ -17,6 +18,8 @@ private:
     void vertical_slider(int x, int y, const char* name, int value, int max_value);
     void horizontal_slider(int x, int y, const char* name, int value, int min_value, int max_value);
     void draw_text(int x, int y, std::string text_str, SDL_Color textColor);
+    void draw_graph(int x, int y, DMF::Instrument::FM_Operator op);
+
     TTF_Font     *m_font;
     SDL_Window   *m_program_window;
     SDL_Event     m_program_window_event;

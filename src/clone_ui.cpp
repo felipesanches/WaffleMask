@@ -45,6 +45,25 @@ void CloneUI::draw_text(int x, int y, std::string text_str, SDL_Color textColor)
 	SDL_DestroyTexture(text);
 }
 
+#define OPERATOR_GRAPH_AREA_WIDTH 265
+#define OPERATOR_GRAPH_AREA_HEIGHT 64
+
+void CloneUI::draw_graph(int x, int y, DMF::Instrument::FM_Operator op){
+	SDL_Rect rect;
+	rect.x = x;
+	rect.y = y;
+	rect.w = OPERATOR_GRAPH_AREA_WIDTH;
+	rect.h = OPERATOR_GRAPH_AREA_HEIGHT;
+	SDL_SetRenderDrawColor(m_program_window_renderer, 0, 0, 0, 255);
+	SDL_RenderFillRect(m_program_window_renderer, &rect);
+
+	// Graph lines:
+	SDL_SetRenderDrawColor(m_program_window_renderer, 48, 198, 98, 255);
+	SDL_RenderDrawLine(m_program_window_renderer,
+	                                               x,   y,
+	                   x + OPERATOR_GRAPH_AREA_WIDTH,   y + OPERATOR_GRAPH_AREA_HEIGHT);
+}
+
 #define VSLIDER_WIDTH 24
 #define VSLIDER_HEIGHT 160
 void CloneUI::vertical_slider(int x, int y, const char* name, int value, int max_value){
@@ -72,9 +91,6 @@ void CloneUI::vertical_slider(int x, int y, const char* name, int value, int max
 	SDL_SetRenderDrawColor(m_program_window_renderer, 220, 220, 220, 255);
 	SDL_RenderFillRect(m_program_window_renderer, &rect);
 }
-
-#define OPERATOR_GRAPH_AREA_WIDTH 265
-#define OPERATOR_GRAPH_AREA_HEIGHT 64
 
 #define HSLIDER_WIDTH ((OPERATOR_GRAPH_AREA_WIDTH - MARGIN)/2)
 #define HSLIDER_HEIGHT 10
@@ -142,13 +158,8 @@ song.instrument[active_instr].fm.op[0].RR = 15;
 
 		x += PADDING;
 
-		// Graph area:
-		rect.x = x + 135;
-		rect.y = y + 25;
-		rect.w = OPERATOR_GRAPH_AREA_WIDTH;
-		rect.h = OPERATOR_GRAPH_AREA_HEIGHT;
-		SDL_SetRenderDrawColor(m_program_window_renderer, 0, 0, 0, 255);
-		SDL_RenderFillRect(m_program_window_renderer, &rect);
+		// Graph:
+		draw_graph(x + 135, y + 25, song.instrument[active_instr].fm.op[i]);
 
 		// ADSR sliders:
 		vertical_slider(x + 0 * VSLIDER_WIDTH, y, "A",  song.instrument[active_instr].fm.op[i].AR,  31);
