@@ -203,16 +203,16 @@ song.instrument[active_instr].fm.op[0].RR = 15;
 		draw_text(x + 135, y + 5, std::string("OPERATOR  ") + std::to_string(i+1), YELLOW);
 
 		// MULT slider:
-		horizontal_slider(x + 135, y + 27 + OPERATOR_GRAPH_AREA_HEIGHT, "MULT",  1, 0, 15);
+		horizontal_slider(x + 135, y + 27 + OPERATOR_GRAPH_AREA_HEIGHT, "MULT",  song.instrument[active_instr].fm.op[i].MULT, 0, 15);
 
 		// DT slider:
-		horizontal_slider(x + 135, y + 32 + OPERATOR_GRAPH_AREA_HEIGHT + 2*HSLIDER_HEIGHT, "DT",  0, -2, 2);
+		horizontal_slider(x + 135, y + 32 + OPERATOR_GRAPH_AREA_HEIGHT + 2*HSLIDER_HEIGHT, "DT",  song.instrument[active_instr].fm.op[i].DT1, -3, 3);
 
 		// RS slider:
-		horizontal_slider(x + 135 + MARGIN + HSLIDER_WIDTH, y + 27 + OPERATOR_GRAPH_AREA_HEIGHT, "RS",  0, 0, 15);
+		horizontal_slider(x + 135 + MARGIN + HSLIDER_WIDTH, y + 27 + OPERATOR_GRAPH_AREA_HEIGHT, "RS",  song.instrument[active_instr].fm.op[i].RS & 0x3, 0, 3);
 
 		// SSG-EG slider:
-		horizontal_slider(x + 135 + MARGIN + HSLIDER_WIDTH, y + 32 + OPERATOR_GRAPH_AREA_HEIGHT + 2*HSLIDER_HEIGHT, "SSG-EG",  0, 0, 15);
+		horizontal_slider(x + 135 + MARGIN + HSLIDER_WIDTH, y + 32 + OPERATOR_GRAPH_AREA_HEIGHT + 2*HSLIDER_HEIGHT, "SSG-EG",  song.instrument[active_instr].fm.op[i].SSGMODE & 0x7, 0, 7);
 
 		// Y coordinate for the next operator widget:
 		y += OPERATOR_WIDGET_HEIGHT;
