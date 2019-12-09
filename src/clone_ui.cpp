@@ -148,6 +148,7 @@ extern int active_instr;
 
 void CloneUI::draw(){
 
+#if 0
 //DEBUG:
 song.instrument[active_instr].fm.op[0].TL = 0;
 song.instrument[active_instr].fm.op[0].AR = 15;
@@ -155,6 +156,7 @@ song.instrument[active_instr].fm.op[0].D1R = 20;
 song.instrument[active_instr].fm.op[0].SL = 7;
 song.instrument[active_instr].fm.op[0].D2R = 0;
 song.instrument[active_instr].fm.op[0].RR = 15;
+#endif
 
 	SDL_RenderClear(m_program_window_renderer);
 
