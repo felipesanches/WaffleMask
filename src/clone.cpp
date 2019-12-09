@@ -237,14 +237,21 @@ void setup_instrument(DMF::Instrument& instr){
 DMF::Song song;
 int active_instr = 0;
 
-int main(){
+int main(int argc, char** argv){
+	if (argc != 3){
+		printf("usage: %s file.dmf instrument_index\n\n", argv[0]);
+		return -1;
+	}
+
+	active_instr = atoi(argv[2]); //FIXME: forbid instrument index larger than num(instruments)
+
 	DMF::DataReader* datareader = new DMF::DataReader;
-	datareader->load("data/sample.dmf", song);
+	datareader->load(argv[1], song);
 	printf("System: %02X\n", song.infos.system);
 
 	device_start_ym2612(0, 8000000);
 	device_reset_ym2612(0);
-	setup_instrument(song.instrument[0]);
+	setup_instrument(song.instrument[active_instr]);
 	StartStream();
 
 	pthread_t playback_thread;
