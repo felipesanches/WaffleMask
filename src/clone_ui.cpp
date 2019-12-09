@@ -1,5 +1,6 @@
 #include <string>
 #include "clone_ui.h"
+#include "dmf.h"
 
 #define OPERATOR_WIDGET_WIDTH 500
 #define OPERATOR_WIDGET_HEIGHT 160
@@ -102,7 +103,18 @@ void CloneUI::horizontal_slider(int x, int y, const char* name, int value, int m
 	SDL_RenderFillRect(m_program_window_renderer, &rect);
 }
 
+extern DMF::Song song;
+extern int active_instr;
+
 void CloneUI::draw(){
+
+//DEBUG:
+song.instrument[active_instr].fm.op[0].AR = 31;
+song.instrument[active_instr].fm.op[0].D1R = 14;
+song.instrument[active_instr].fm.op[0].SL = 1;
+song.instrument[active_instr].fm.op[0].D2R = 7;
+song.instrument[active_instr].fm.op[0].RR = 15;
+
 	SDL_RenderClear(m_program_window_renderer);
 
 	SDL_Rect rect;
@@ -139,11 +151,11 @@ void CloneUI::draw(){
 		SDL_RenderFillRect(m_program_window_renderer, &rect);
 
 		// ADSR sliders:
-		vertical_slider(x + 0 * VSLIDER_WIDTH, y, "A",  31, 31);
-		vertical_slider(x + 1 * VSLIDER_WIDTH, y, "D",  14, 31);
-		vertical_slider(x + 2 * VSLIDER_WIDTH, y, "S",  1,  31);
-		vertical_slider(x + 3 * VSLIDER_WIDTH, y, "D2", 7,  31);
-		vertical_slider(x + 4 * VSLIDER_WIDTH, y, "R",  15, 15);
+		vertical_slider(x + 0 * VSLIDER_WIDTH, y, "A",  song.instrument[active_instr].fm.op[i].AR,  31);
+		vertical_slider(x + 1 * VSLIDER_WIDTH, y, "D",  song.instrument[active_instr].fm.op[i].D1R, 31);
+		vertical_slider(x + 2 * VSLIDER_WIDTH, y, "S",  song.instrument[active_instr].fm.op[i].SL,  31);
+		vertical_slider(x + 3 * VSLIDER_WIDTH, y, "D2", song.instrument[active_instr].fm.op[i].D2R, 31);
+		vertical_slider(x + 4 * VSLIDER_WIDTH, y, "R",  song.instrument[active_instr].fm.op[i].RR,  15);
 
 		// TL slider:
 		vertical_slider(x + 420, y, "TL",  18, 127);

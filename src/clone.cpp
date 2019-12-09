@@ -234,9 +234,10 @@ void setup_instrument(DMF::Instrument& instr){
 	}
 }
 
+DMF::Song song;
+int active_instr = 0;
 
 int main(){
-	DMF::Song song;
 	DMF::DataReader* datareader = new DMF::DataReader;
 	datareader->load("data/sample.dmf", song);
 	printf("System: %02X\n", song.infos.system);
