@@ -65,12 +65,27 @@ void CloneUI::draw_graph(int x, int y, DMF::Instrument::FM_Operator op){
 	                   /* X2: */  x + OPERATOR_GRAPH_AREA_WIDTH*0.9*((31 - op.AR)/31.0)*((31 - op.D1R)/31.0),
 	                   /* Y2: */  y + OPERATOR_GRAPH_AREA_HEIGHT - OPERATOR_GRAPH_AREA_HEIGHT * ((127 - op.TL)/127.0) );
 
-	SDL_SetRenderDrawColor(m_program_window_renderer, 48, 198, 98, 255);
 	SDL_RenderDrawLine(m_program_window_renderer,
 	                   /* X1: */  x + OPERATOR_GRAPH_AREA_WIDTH*0.9*((31 - op.AR)/31.0)*((31 - op.D1R)/31.0),
 	                   /* Y1: */  y + OPERATOR_GRAPH_AREA_HEIGHT - OPERATOR_GRAPH_AREA_HEIGHT * ((127 - op.TL)/127.0),
 	                   /* X2: */  x + OPERATOR_GRAPH_AREA_WIDTH*0.9*((31 - op.D1R)/31.0),
 	                   /* Y2: */  y + OPERATOR_GRAPH_AREA_HEIGHT - (OPERATOR_GRAPH_AREA_HEIGHT * ((15 - op.SL)/15.0)) * ((127 - op.TL)/127.0) );
+
+
+	SDL_SetRenderDrawColor(m_program_window_renderer, 48, 98, 198, 255);
+	SDL_RenderDrawLine(m_program_window_renderer,
+	                   /* X1: */  x + OPERATOR_GRAPH_AREA_WIDTH*0.9*((31 - op.D1R)/31.0),
+	                   /* Y1: */  y + OPERATOR_GRAPH_AREA_HEIGHT - OPERATOR_GRAPH_AREA_HEIGHT * ((15 - op.SL)/15.0) * ((127 - op.TL)/127.0),
+	                   /* X2: */  x + OPERATOR_GRAPH_AREA_WIDTH*0.9*((31 - op.D1R)/31.0) + (OPERATOR_GRAPH_AREA_WIDTH*0.9*((op.D1R)/31.0) + OPERATOR_GRAPH_AREA_WIDTH*0.1) * (op.D2R/31.0),
+	                   /* Y2: */  y + OPERATOR_GRAPH_AREA_HEIGHT - (op.D2R == 00 ? 0 : OPERATOR_GRAPH_AREA_HEIGHT*((15 - op.SL)/15.0) * ((127 - op.TL)/127.0)));
+
+
+	SDL_SetRenderDrawColor(m_program_window_renderer, 48, 198, 98, 255);
+	SDL_RenderDrawLine(m_program_window_renderer,
+	                   /* X1: */  x + OPERATOR_GRAPH_AREA_WIDTH*0.9*((31 - op.D1R)/31.0),
+	                   /* Y1: */  y + OPERATOR_GRAPH_AREA_HEIGHT - (OPERATOR_GRAPH_AREA_HEIGHT * ((15 - op.SL)/15.0)) * ((127 - op.TL)/127.0),
+	                   /* X2: */  x + OPERATOR_GRAPH_AREA_WIDTH*0.9*((31 - op.D1R)/31.0) + (OPERATOR_GRAPH_AREA_WIDTH*0.9*((op.D1R)/31.0) + OPERATOR_GRAPH_AREA_WIDTH*0.1) * (op.RR/15.0),
+	                   /* Y2: */  y + OPERATOR_GRAPH_AREA_HEIGHT - (op.RR == 00 ? 0 : OPERATOR_GRAPH_AREA_HEIGHT*((15 - op.SL)/15.0) * ((127 - op.TL)/127.0)));
 }
 
 #define VSLIDER_WIDTH 24
@@ -138,7 +153,7 @@ song.instrument[active_instr].fm.op[0].TL = 0;
 song.instrument[active_instr].fm.op[0].AR = 15;
 song.instrument[active_instr].fm.op[0].D1R = 20;
 song.instrument[active_instr].fm.op[0].SL = 7;
-song.instrument[active_instr].fm.op[0].D2R = 7;
+song.instrument[active_instr].fm.op[0].D2R = 0;
 song.instrument[active_instr].fm.op[0].RR = 15;
 
 	SDL_RenderClear(m_program_window_renderer);
