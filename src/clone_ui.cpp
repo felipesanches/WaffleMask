@@ -57,35 +57,49 @@ void CloneUI::draw_graph(int x, int y, DMF::Instrument::FM_Operator op){
 	SDL_SetRenderDrawColor(m_program_window_renderer, 0, 0, 0, 255);
 	SDL_RenderFillRect(m_program_window_renderer, &rect);
 
+	float a = (31 - op.AR) / 31.0;
+	float d = (31 - op.D1R) / 31.0;
+	float s = (15 - op.SL) / 15.0;
+	float d2 = (31 - op.D2R) / 31.0;
+	float r = (15 - op.RR) / 15.0;
+	float TotalLevel = (127 - op.TL) / 127.0;
+
+
 	// Graph lines:
 	SDL_SetRenderDrawColor(m_program_window_renderer, 48, 198, 98, 255);
 	SDL_RenderDrawLine(m_program_window_renderer,
 	                   /* X1: */  x,
 	                   /* Y1: */  y + OPERATOR_GRAPH_AREA_HEIGHT,
-	                   /* X2: */  x + OPERATOR_GRAPH_AREA_WIDTH*0.9*((31 - op.AR)/31.0)*((31 - op.D1R)/31.0),
-	                   /* Y2: */  y + OPERATOR_GRAPH_AREA_HEIGHT - OPERATOR_GRAPH_AREA_HEIGHT * ((127 - op.TL)/127.0) );
+	                   /* X2: */  x + OPERATOR_GRAPH_AREA_WIDTH * 0.9 * a * d,
+	                   /* Y2: */  y + OPERATOR_GRAPH_AREA_HEIGHT * (1 - TotalLevel)
+	);
 
 	SDL_RenderDrawLine(m_program_window_renderer,
-	                   /* X1: */  x + OPERATOR_GRAPH_AREA_WIDTH*0.9*((31 - op.AR)/31.0)*((31 - op.D1R)/31.0),
-	                   /* Y1: */  y + OPERATOR_GRAPH_AREA_HEIGHT - OPERATOR_GRAPH_AREA_HEIGHT * ((127 - op.TL)/127.0),
-	                   /* X2: */  x + OPERATOR_GRAPH_AREA_WIDTH*0.9*((31 - op.D1R)/31.0),
-	                   /* Y2: */  y + OPERATOR_GRAPH_AREA_HEIGHT - (OPERATOR_GRAPH_AREA_HEIGHT * ((15 - op.SL)/15.0)) * ((127 - op.TL)/127.0) );
+	                   /* X1: */  x + OPERATOR_GRAPH_AREA_WIDTH * 0.9 * a * d,
+	                   /* Y1: */  y + OPERATOR_GRAPH_AREA_HEIGHT * (1 - TotalLevel),
+	                   /* X2: */  x + OPERATOR_GRAPH_AREA_WIDTH * 0.9 * d,
+	                   /* Y2: */  y + OPERATOR_GRAPH_AREA_HEIGHT * (1 - s * TotalLevel)
+	);
 
 
 	SDL_SetRenderDrawColor(m_program_window_renderer, 48, 98, 198, 255);
 	SDL_RenderDrawLine(m_program_window_renderer,
-	                   /* X1: */  x + OPERATOR_GRAPH_AREA_WIDTH*0.9*((31 - op.D1R)/31.0),
-	                   /* Y1: */  y + OPERATOR_GRAPH_AREA_HEIGHT - OPERATOR_GRAPH_AREA_HEIGHT * ((15 - op.SL)/15.0) * ((127 - op.TL)/127.0),
-	                   /* X2: */  x + OPERATOR_GRAPH_AREA_WIDTH*0.9*((31 - op.D1R)/31.0) + (OPERATOR_GRAPH_AREA_WIDTH*0.9*((op.D1R)/31.0) + OPERATOR_GRAPH_AREA_WIDTH*0.1) * (op.D2R/31.0),
-	                   /* Y2: */  y + OPERATOR_GRAPH_AREA_HEIGHT - (op.D2R == 00 ? 0 : OPERATOR_GRAPH_AREA_HEIGHT*((15 - op.SL)/15.0) * ((127 - op.TL)/127.0)));
+	                   /* X1: */  x + OPERATOR_GRAPH_AREA_WIDTH * 0.9 * d,
+	                   /* Y1: */  y + OPERATOR_GRAPH_AREA_HEIGHT * (1 - s * TotalLevel),
+	                   /* X2: */  x + OPERATOR_GRAPH_AREA_WIDTH * 0.9 * d + \
+	                                 (OPERATOR_GRAPH_AREA_WIDTH * 0.9 * (1 - d) + OPERATOR_GRAPH_AREA_WIDTH * 0.1) * (1 - d2),
+	                   /* Y2: */  y + OPERATOR_GRAPH_AREA_HEIGHT - (op.D2R != 0 ? 0 : OPERATOR_GRAPH_AREA_HEIGHT * s * TotalLevel)
+	);
 
 
 	SDL_SetRenderDrawColor(m_program_window_renderer, 48, 198, 98, 255);
 	SDL_RenderDrawLine(m_program_window_renderer,
-	                   /* X1: */  x + OPERATOR_GRAPH_AREA_WIDTH*0.9*((31 - op.D1R)/31.0),
-	                   /* Y1: */  y + OPERATOR_GRAPH_AREA_HEIGHT - (OPERATOR_GRAPH_AREA_HEIGHT * ((15 - op.SL)/15.0)) * ((127 - op.TL)/127.0),
-	                   /* X2: */  x + OPERATOR_GRAPH_AREA_WIDTH*0.9*((31 - op.D1R)/31.0) + (OPERATOR_GRAPH_AREA_WIDTH*0.9*((op.D1R)/31.0) + OPERATOR_GRAPH_AREA_WIDTH*0.1) * (op.RR/15.0),
-	                   /* Y2: */  y + OPERATOR_GRAPH_AREA_HEIGHT - (op.RR == 00 ? 0 : OPERATOR_GRAPH_AREA_HEIGHT*((15 - op.SL)/15.0) * ((127 - op.TL)/127.0)));
+	                   /* X1: */  x + OPERATOR_GRAPH_AREA_WIDTH * 0.9 * d,
+	                   /* Y1: */  y + OPERATOR_GRAPH_AREA_HEIGHT * (1 - s * TotalLevel),
+	                   /* X2: */  x + OPERATOR_GRAPH_AREA_WIDTH * 0.9 * d + \
+	                                 (OPERATOR_GRAPH_AREA_WIDTH * 0.9 * (1 - d) + OPERATOR_GRAPH_AREA_WIDTH * 0.1) * (1 - r),
+	                   /* Y2: */  y + OPERATOR_GRAPH_AREA_HEIGHT - (op.RR != 0 ? 0 : OPERATOR_GRAPH_AREA_HEIGHT * s * TotalLevel)
+	);
 }
 
 #define VSLIDER_WIDTH 24
