@@ -60,8 +60,17 @@ void CloneUI::draw_graph(int x, int y, DMF::Instrument::FM_Operator op){
 	// Graph lines:
 	SDL_SetRenderDrawColor(m_program_window_renderer, 48, 198, 98, 255);
 	SDL_RenderDrawLine(m_program_window_renderer,
-	                                               x,   y,
-	                   x + OPERATOR_GRAPH_AREA_WIDTH,   y + OPERATOR_GRAPH_AREA_HEIGHT);
+	                   /* X1: */  x,
+	                   /* Y1: */  y + OPERATOR_GRAPH_AREA_HEIGHT,
+	                   /* X2: */  x + OPERATOR_GRAPH_AREA_WIDTH*0.9*((31 - op.AR)/31.0)*((31 - op.D1R)/31.0),
+	                   /* Y2: */  y + OPERATOR_GRAPH_AREA_HEIGHT - OPERATOR_GRAPH_AREA_HEIGHT * ((127 - op.TL)/127.0) );
+
+	SDL_SetRenderDrawColor(m_program_window_renderer, 48, 198, 98, 255);
+	SDL_RenderDrawLine(m_program_window_renderer,
+	                   /* X1: */  x + OPERATOR_GRAPH_AREA_WIDTH*0.9*((31 - op.AR)/31.0)*((31 - op.D1R)/31.0),
+	                   /* Y1: */  y + OPERATOR_GRAPH_AREA_HEIGHT - OPERATOR_GRAPH_AREA_HEIGHT * ((127 - op.TL)/127.0),
+	                   /* X2: */  x + OPERATOR_GRAPH_AREA_WIDTH*0.9*((31 - op.D1R)/31.0),
+	                   /* Y2: */  y + OPERATOR_GRAPH_AREA_HEIGHT - (OPERATOR_GRAPH_AREA_HEIGHT * ((15 - op.SL)/15.0)) * ((127 - op.TL)/127.0) );
 }
 
 #define VSLIDER_WIDTH 24
@@ -125,9 +134,10 @@ extern int active_instr;
 void CloneUI::draw(){
 
 //DEBUG:
-song.instrument[active_instr].fm.op[0].AR = 31;
-song.instrument[active_instr].fm.op[0].D1R = 14;
-song.instrument[active_instr].fm.op[0].SL = 1;
+song.instrument[active_instr].fm.op[0].TL = 0;
+song.instrument[active_instr].fm.op[0].AR = 15;
+song.instrument[active_instr].fm.op[0].D1R = 20;
+song.instrument[active_instr].fm.op[0].SL = 7;
 song.instrument[active_instr].fm.op[0].D2R = 7;
 song.instrument[active_instr].fm.op[0].RR = 15;
 
@@ -164,12 +174,12 @@ song.instrument[active_instr].fm.op[0].RR = 15;
 		// ADSR sliders:
 		vertical_slider(x + 0 * VSLIDER_WIDTH, y, "A",  song.instrument[active_instr].fm.op[i].AR,  31);
 		vertical_slider(x + 1 * VSLIDER_WIDTH, y, "D",  song.instrument[active_instr].fm.op[i].D1R, 31);
-		vertical_slider(x + 2 * VSLIDER_WIDTH, y, "S",  song.instrument[active_instr].fm.op[i].SL,  31);
+		vertical_slider(x + 2 * VSLIDER_WIDTH, y, "S",  song.instrument[active_instr].fm.op[i].SL,  15);
 		vertical_slider(x + 3 * VSLIDER_WIDTH, y, "D2", song.instrument[active_instr].fm.op[i].D2R, 31);
 		vertical_slider(x + 4 * VSLIDER_WIDTH, y, "R",  song.instrument[active_instr].fm.op[i].RR,  15);
 
 		// TL slider:
-		vertical_slider(x + 420, y, "TL",  18, 127);
+		vertical_slider(x + 420, y, "TL",  song.instrument[active_instr].fm.op[i].TL, 127);
 
 		// Operator number
 		SDL_Color YELLOW = { 255, 255, 0, 0 };
