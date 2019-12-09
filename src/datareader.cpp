@@ -189,7 +189,11 @@ bool DataReader::read(Instrument& inst) {
         if(ok) { ok = read(inst.fm.FB); }
         if(ok) { ok = read(inst.fm.LFO); }
         if(ok) { ok = read(inst.fm.LFO2); }
-	for (uint8_t i=0; i<4; i++){
+
+	/* weirdly, Fm-operators are not stored linearly in the file */
+	uint8_t operator_ordering[4] = {0,2,1,3};
+	for (uint8_t j=0; j<4; j++){
+		uint8_t i = operator_ordering[j];
 	        if(ok) { ok = read(inst.fm.op[i].AM); }
 	        if(ok) { ok = read(inst.fm.op[i].AR); }
 	        if(ok) { ok = read(inst.fm.op[i].D1R); }
@@ -199,7 +203,7 @@ bool DataReader::read(Instrument& inst) {
 	        if(ok) { ok = read(inst.fm.op[i].TL); }
 	        if(ok) { ok = read(inst.fm.op[i].DT2); }
 	        if(ok) { ok = read(inst.fm.op[i].RS); }
-	        if(ok) { ok = read(inst.fm.op[i].DT1); }
+	        if(ok) { ok = read(inst.fm.op[i].DT); }
 	        if(ok) { ok = read(inst.fm.op[i].D2R); }
 	        if(ok) { ok = read(inst.fm.op[i].SSGMODE); }
 	}

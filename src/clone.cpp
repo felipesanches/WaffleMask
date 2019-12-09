@@ -219,7 +219,7 @@ void setup_instrument(DMF::Instrument& instr){
 	for(int a1 = 0; a1<=1; a1++){
 		for(int i=0; i<3; i++){
 			for(int j=0; j<4; j++){
-				ym2612_write_reg(0, 0x30 + 4*j + i, instr.fm.op[j].DT1 & 0x07 << 4 | instr.fm.op[j].MULT & 0x0F, a1); //DT1/Multi
+				ym2612_write_reg(0, 0x30 + 4*j + i, instr.fm.op[j].DT & 0x07 << 4 | instr.fm.op[j].MULT & 0x0F, a1); //DT1/Multi
 				ym2612_write_reg(0, 0x40 + 4*j + i, instr.fm.op[j].TL, a1); //Total Level
 				ym2612_write_reg(0, 0x50 + 4*j + i, instr.fm.op[j].RS & 0x07 << 5 | instr.fm.op[j].AR & 0x1F, a1); //RS/AR
 				ym2612_write_reg(0, 0x60 + 4*j + i, instr.fm.op[j].AM & 0x01 << 7 | instr.fm.op[j].D1R & 0x7F, a1); //AM/D1R

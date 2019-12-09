@@ -180,7 +180,7 @@ struct Instrument {
         uint8_t TL;
         uint8_t DT2;
         uint8_t RS;
-        uint8_t DT1;
+        uint8_t DT;
         uint8_t D2R;
         uint8_t SSGMODE; // (BIT 4 = 0 Disabled, 1 Enabled, BITS 0,1,2 SSG_MODE)
     };
