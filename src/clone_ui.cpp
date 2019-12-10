@@ -25,7 +25,7 @@ CloneUI::CloneUI(){
 }
 
 void CloneUI::program_loop(){
-	int x, y;
+	int coord, x, y;
 	bool keep_running = true;
 	TTF_Init();
 	m_font = TTF_OpenFont("Tomorrow-Regular.ttf", 10);
@@ -53,9 +53,13 @@ void CloneUI::program_loop(){
 				case SDL_MOUSEMOTION:
 					if (grabbed_item != -1){
 						UI_Item* item = &ui_items[grabbed_item];
-						y = m_program_window_event.motion.y;
-						y = std::max(item->ymin, std::min(y, item->ymax));
-						int value = ((y - item->ymin) / float(item->ymax - item->ymin)) * \
+						if (item->type == VERTICAL_SLIDER){
+							coord = m_program_window_event.motion.y;
+						} else { /* HORIZONTAL_SLIDER */
+							coord = m_program_window_event.motion.x;
+						}
+						coord = std::max(item->coord_min, std::min(coord, item->coord_max));
+						int value = ((coord - item->coord_min) / float(item->coord_max - item->coord_min)) * \
 						             (item->value_max - item->value_min);
 						if (*(item->value) != value){
 							*(item->value) = value;
@@ -64,9 +68,6 @@ void CloneUI::program_loop(){
 							ui_needs_update = true;
 						}
 					}
-					//printf("Mouse motion at (%d,%d)\n",
-					//       m_program_window_event.motion.x,
-					//       m_program_window_event.motion.y);
 					break;
 				}
 		}
@@ -166,15 +167,16 @@ void CloneUI::draw_graph(int x, int y, DMF::Instrument::FM_Operator op){
 	);
 }
 
-void CloneUI::register_ui_item(SDL_Rect rect, int ymin, int ymax, int value_min, int value_max, uint8_t* value){
+void CloneUI::register_ui_item(int type, SDL_Rect rect, int coord_min, int coord_max, int value_min, int value_max, uint8_t* value){
 	if (ui_needs_update){
 		UI_Item item;
+		item.type = type;
 		item.x1 = rect.x;
 		item.y1 = rect.y;
 		item.x2 = rect.x + rect.w;
 		item.y2 = rect.y + rect.h;
-		item.ymin = ymin;
-		item.ymax = ymax;
+		item.coord_min = coord_min;
+		item.coord_max = coord_max;
 		item.value_min = value_min;
 		item.value_max = value_max;
 		item.value = value;
@@ -207,20 +209,20 @@ void CloneUI::vertical_slider(int x, int y, const char* name, uint8_t* value, in
 	rect.y = y + 25 + (height-5) * (*value/float(max_value));
 	rect.w = width + 4;
 	rect.h = 5;
-        register_ui_item(rect, y+25, y+25+height, 0, max_value, value);
+        register_ui_item(VERTICAL_SLIDER, rect, y+25, y+25+height, 0, max_value, value);
 	SDL_SetRenderDrawColor(m_program_window_renderer, 220, 220, 220, 255);
 	SDL_RenderFillRect(m_program_window_renderer, &rect);
 }
 
 #define HSLIDER_WIDTH ((OPERATOR_GRAPH_AREA_WIDTH - MARGIN)/2)
 #define HSLIDER_HEIGHT 10
-void CloneUI::horizontal_slider(int x, int y, const char* name, int value, int min_value, int max_value){
+void CloneUI::horizontal_slider(int x, int y, const char* name, uint8_t* value, int min_value, int max_value){
 	int width = HSLIDER_WIDTH;
 	int height = HSLIDER_HEIGHT;
 	SDL_Rect rect;
 
 	SDL_Color WHITE = { 255, 255, 255, 0 };
-	draw_text(x, y - 2, std::string(name) + std::string("  ") + std::to_string(value), WHITE);
+	draw_text(x, y - 2, std::string(name) + std::string("  ") + std::to_string(min_value + *value), WHITE);
 	
 	// slider body
 	rect.x = x;
@@ -231,10 +233,11 @@ void CloneUI::horizontal_slider(int x, int y, const char* name, int value, int m
 	SDL_RenderFillRect(m_program_window_renderer, &rect);
 
 	// slider level
-	rect.x = x + (width-5) * ((value - min_value)/float(max_value - min_value));
+	rect.x = x + (width-5) * (*value)/float(max_value - min_value);
 	rect.y = y + height;
 	rect.w = 5;
 	rect.h = height;
+	register_ui_item(HORIZONTAL_SLIDER, rect, x, x+width, min_value, max_value, value);
 	SDL_SetRenderDrawColor(m_program_window_renderer, 220, 220, 220, 255);
 	SDL_RenderFillRect(m_program_window_renderer, &rect);
 }
@@ -289,19 +292,19 @@ void CloneUI::draw(){
 
 		// MULT slider:
 		horizontal_slider(x + 135, y + 27 + OPERATOR_GRAPH_AREA_HEIGHT,
-		                  "MULT",  song.instrument[active_instr].fm.op[i].MULT, 0, 15);
+		                  "MULT",  &(song.instrument[active_instr].fm.op[i].MULT), 0, 15);
 
 		// DT slider:
 		horizontal_slider(x + 135, y + 32 + OPERATOR_GRAPH_AREA_HEIGHT + 2*HSLIDER_HEIGHT,
-		                  "DT",  song.instrument[active_instr].fm.op[i].DT - 3, -3, 3);
+		                  "DT",  &(song.instrument[active_instr].fm.op[i].DT), -3, 3);
 
 		// RS slider:
 		horizontal_slider(x + 135 + MARGIN + HSLIDER_WIDTH, y + 27 + OPERATOR_GRAPH_AREA_HEIGHT,
-		                  "RS",  song.instrument[active_instr].fm.op[i].RS & 0x3, 0, 3);
+		                  "RS",  &(song.instrument[active_instr].fm.op[i].RS), 0, 3);
 
 		// SSG-EG slider:
 		horizontal_slider(x + 135 + MARGIN + HSLIDER_WIDTH, y + 32 + OPERATOR_GRAPH_AREA_HEIGHT + 2*HSLIDER_HEIGHT,
-		                  "SSG-EG",  song.instrument[active_instr].fm.op[i].SSGMODE & 0x7, 0, 7);
+		                  "SSG-EG",  &(song.instrument[active_instr].fm.op[i].SSGMODE), 0, 7);
 
 		// Y coordinate for the next operator widget:
 		y += OPERATOR_WIDGET_HEIGHT;
