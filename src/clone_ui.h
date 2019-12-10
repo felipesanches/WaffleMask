@@ -8,10 +8,7 @@
 #define HORIZONTAL_SLIDER 1
 struct UI_Item {
 	int type; // 0 = vertical / 1 = horizontal
-	int x1;
-	int y1;
-	int x2;
-	int y2;
+	SDL_Rect area;
 	int coord_min;
 	int coord_max;
 	int value_min;

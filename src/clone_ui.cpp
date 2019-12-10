@@ -41,8 +41,8 @@ void CloneUI::program_loop(){
 					grabbed_item = -1;
 					for (int i=0; i < ui_items.size(); i++){
 						UI_Item item = ui_items[i];
-						if (x >= item.x1 && x <= item.x2 && y >= item.y1 && y <= item.y2){
-							//printf("GRABBED item %d at (%d,%d)\n", i, x, y);
+						if (x >= item.area.x && x <= item.area.x + item.area.w &&
+						    y >= item.area.y && y <= item.area.y + item.area.h){
 							grabbed_item = i;
 						}
 					}
@@ -167,14 +167,11 @@ void CloneUI::draw_graph(int x, int y, DMF::Instrument::FM_Operator op){
 	);
 }
 
-void CloneUI::register_ui_item(int type, SDL_Rect rect, int coord_min, int coord_max, int value_min, int value_max, uint8_t* value){
+void CloneUI::register_ui_item(int type, SDL_Rect area, int coord_min, int coord_max, int value_min, int value_max, uint8_t* value){
 	if (ui_needs_update){
 		UI_Item item;
 		item.type = type;
-		item.x1 = rect.x;
-		item.y1 = rect.y;
-		item.x2 = rect.x + rect.w;
-		item.y2 = rect.y + rect.h;
+		item.area = area;
 		item.coord_min = coord_min;
 		item.coord_max = coord_max;
 		item.value_min = value_min;
