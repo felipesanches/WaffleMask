@@ -94,7 +94,7 @@ void* MidiInputThread(void* _null_ptr){
 
 	if ((fd = open("/dev/midi1", O_RDONLY, 0)) == -1){
 		perror ("open /dev/midi1");
-		exit (-1);
+		return NULL; //exit (-1);
 	}
 
 	#define WAITING_COMMAND 0
