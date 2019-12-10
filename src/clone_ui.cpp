@@ -1,7 +1,10 @@
 #include <string>
+#include "clone.h"
 #include "clone_ui.h"
 #include "dmf.h"
 
+extern DMF::Song song;
+extern int active_instr;
 extern int* CurBufR;
 extern unsigned int SAMPLES_PER_BUFFER;
 
@@ -39,7 +42,7 @@ void CloneUI::program_loop(){
 					for (int i=0; i < ui_items.size(); i++){
 						UI_Item item = ui_items[i];
 						if (x >= item.x1 && x <= item.x2 && y >= item.y1 && y <= item.y2){
-							printf("GRABBED item %d at (%d,%d)\n", i, x, y);
+							//printf("GRABBED item %d at (%d,%d)\n", i, x, y);
 							grabbed_item = i;
 						}
 					}
@@ -52,8 +55,14 @@ void CloneUI::program_loop(){
 						UI_Item* item = &ui_items[grabbed_item];
 						y = m_program_window_event.motion.y;
 						y = std::max(item->ymin, std::min(y, item->ymax));
-						*(item->value) = ((y - item->ymin) / float(item->ymax - item->ymin)) * \
-						                 (item->value_max - item->value_min);		
+						int value = ((y - item->ymin) / float(item->ymax - item->ymin)) * \
+						             (item->value_max - item->value_min);
+						if (*(item->value) != value){
+							*(item->value) = value;
+							setup_instrument(song.instrument[active_instr]);
+							ui_items.empty();
+							ui_needs_update = true;
+						}
 					}
 					//printf("Mouse motion at (%d,%d)\n",
 					//       m_program_window_event.motion.x,
@@ -229,9 +238,6 @@ void CloneUI::horizontal_slider(int x, int y, const char* name, int value, int m
 	SDL_SetRenderDrawColor(m_program_window_renderer, 220, 220, 220, 255);
 	SDL_RenderFillRect(m_program_window_renderer, &rect);
 }
-
-extern DMF::Song song;
-extern int active_instr;
 
 void CloneUI::draw(){
 	SDL_RenderClear(m_program_window_renderer);
