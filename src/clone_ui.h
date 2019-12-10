@@ -9,8 +9,6 @@
 struct UI_Item {
 	int type; // 0 = vertical / 1 = horizontal
 	SDL_Rect area;
-	int coord_min;
-	int coord_max;
 	int value_min;
 	int value_max;
 	uint8_t* value;
@@ -32,7 +30,8 @@ private:
     void draw_text(int x, int y, std::string text_str, SDL_Color textColor);
     void draw_graph(int x, int y, DMF::Instrument::FM_Operator op);
     void draw_wave(int x, int y);
-    void register_ui_item(int type, SDL_Rect rect, int coord_min, int coord_max, int value_min, int value_max, uint8_t* value);
+    void register_slider(int type, SDL_Rect rect, int value_min, int value_max, uint8_t* value);
+    void update_slider(int x, int y);
 
     bool ui_needs_update;
     int grabbed_item;

@@ -25,7 +25,7 @@ CloneUI::CloneUI(){
 }
 
 void CloneUI::program_loop(){
-	int coord, x, y;
+	int x, y;
 	bool keep_running = true;
 	TTF_Init();
 	m_font = TTF_OpenFont("Tomorrow-Regular.ttf", 10);
@@ -44,6 +44,7 @@ void CloneUI::program_loop(){
 						if (x >= item.area.x && x <= item.area.x + item.area.w &&
 						    y >= item.area.y && y <= item.area.y + item.area.h){
 							grabbed_item = i;
+							update_slider(x, y);
 						}
 					}
 					break;
@@ -52,21 +53,9 @@ void CloneUI::program_loop(){
 					break;
 				case SDL_MOUSEMOTION:
 					if (grabbed_item != -1){
-						UI_Item* item = &ui_items[grabbed_item];
-						if (item->type == VERTICAL_SLIDER){
-							coord = m_program_window_event.motion.y;
-						} else { /* HORIZONTAL_SLIDER */
-							coord = m_program_window_event.motion.x;
-						}
-						coord = std::max(item->coord_min, std::min(coord, item->coord_max));
-						int value = ((coord - item->coord_min) / float(item->coord_max - item->coord_min)) * \
-						             (item->value_max - item->value_min);
-						if (*(item->value) != value){
-							*(item->value) = value;
-							setup_instrument(song.instrument[active_instr]);
-							ui_items.empty();
-							ui_needs_update = true;
-						}
+						x = m_program_window_event.motion.x;
+						y = m_program_window_event.motion.y;
+						update_slider(x, y);
 					}
 					break;
 				}
@@ -167,19 +156,41 @@ void CloneUI::draw_graph(int x, int y, DMF::Instrument::FM_Operator op){
 	);
 }
 
-void CloneUI::register_ui_item(int type, SDL_Rect area, int coord_min, int coord_max, int value_min, int value_max, uint8_t* value){
+void CloneUI::register_slider(int type, SDL_Rect area, int value_min, int value_max, uint8_t* value){
 	if (ui_needs_update){
 		UI_Item item;
 		item.type = type;
 		item.area = area;
-		item.coord_min = coord_min;
-		item.coord_max = coord_max;
 		item.value_min = value_min;
 		item.value_max = value_max;
 		item.value = value;
 		ui_items.push_back(item);
 	}
 }
+
+void CloneUI::update_slider(int x, int y){
+	int coord, coord_min, coord_max;
+	UI_Item* item = &ui_items[grabbed_item];
+	if (item->type == VERTICAL_SLIDER){
+		coord = m_program_window_event.motion.y;
+		coord_min = item->area.y;
+		coord_max = item->area.y + item->area.h;
+	} else { /* HORIZONTAL_SLIDER */
+		coord = m_program_window_event.motion.x;
+		coord_min = item->area.x;
+		coord_max = item->area.x + item->area.w;
+	}
+	coord = std::max(coord_min, std::min(coord, coord_max));
+	int value = ((coord - coord_min) / float(coord_max - coord_min)) * \
+	             (item->value_max - item->value_min);
+	if (*(item->value) != value){
+		*(item->value) = value;
+		setup_instrument(song.instrument[active_instr]);
+		ui_items.empty();
+		ui_needs_update = true;
+	}
+}
+
 
 
 #define VSLIDER_WIDTH 24
@@ -198,6 +209,7 @@ void CloneUI::vertical_slider(int x, int y, const char* name, uint8_t* value, in
 	rect.y = y + 25;
 	rect.w = width;
 	rect.h = height;
+        register_slider(VERTICAL_SLIDER, rect, 0, max_value, value);
 	SDL_SetRenderDrawColor(m_program_window_renderer, 128, 128, 128, 255);
 	SDL_RenderFillRect(m_program_window_renderer, &rect);
 
@@ -206,7 +218,6 @@ void CloneUI::vertical_slider(int x, int y, const char* name, uint8_t* value, in
 	rect.y = y + 25 + (height-5) * (*value/float(max_value));
 	rect.w = width + 4;
 	rect.h = 5;
-        register_ui_item(VERTICAL_SLIDER, rect, y+25, y+25+height, 0, max_value, value);
 	SDL_SetRenderDrawColor(m_program_window_renderer, 220, 220, 220, 255);
 	SDL_RenderFillRect(m_program_window_renderer, &rect);
 }
@@ -226,6 +237,7 @@ void CloneUI::horizontal_slider(int x, int y, const char* name, uint8_t* value, 
 	rect.y = y + height;
 	rect.w = width;
 	rect.h = height;
+	register_slider(HORIZONTAL_SLIDER, rect, min_value, max_value, value);
 	SDL_SetRenderDrawColor(m_program_window_renderer, 128, 128, 128, 255);
 	SDL_RenderFillRect(m_program_window_renderer, &rect);
 
@@ -234,7 +246,6 @@ void CloneUI::horizontal_slider(int x, int y, const char* name, uint8_t* value, 
 	rect.y = y + height;
 	rect.w = 5;
 	rect.h = height;
-	register_ui_item(HORIZONTAL_SLIDER, rect, x, x+width, min_value, max_value, value);
 	SDL_SetRenderDrawColor(m_program_window_renderer, 220, 220, 220, 255);
 	SDL_RenderFillRect(m_program_window_renderer, &rect);
 }
