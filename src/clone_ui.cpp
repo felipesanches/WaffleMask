@@ -8,6 +8,9 @@ extern int active_instr;
 extern int* CurBufR;
 extern unsigned int SAMPLES_PER_BUFFER;
 
+#define WINDOW_WIDTH 800
+#define WINDOW_HEIGHT 600
+
 #define WAVE_AREA_WIDTH SAMPLES_PER_BUFFER
 #define WAVE_AREA_HEIGHT 300
 #define OPERATOR_WIDGET_WIDTH 500
@@ -16,12 +19,14 @@ extern unsigned int SAMPLES_PER_BUFFER;
 #define PADDING 30
 
 CloneUI::CloneUI(){
-	SDL_CreateWindowAndRenderer(3*MARGIN + OPERATOR_WIDGET_WIDTH + WAVE_AREA_WIDTH,
-	                            2*MARGIN + 4*OPERATOR_WIDGET_HEIGHT,
+	SDL_CreateWindowAndRenderer(WINDOW_WIDTH,
+	                            WINDOW_HEIGHT,
 	                            SDL_WINDOW_RESIZABLE,
 	                            &m_program_window, &m_program_window_renderer);                     
+	SDL_SetRenderDrawBlendMode(m_program_window_renderer, SDL_BLENDMODE_BLEND);
 	ui_needs_update = true;
 	grabbed_item = -1;
+	operators_yscroll_position = 0;
 }
 
 void CloneUI::program_loop(){
@@ -34,6 +39,18 @@ void CloneUI::program_loop(){
 			switch(m_program_window_event.type){
 				case SDL_QUIT:
 					keep_running = false;
+					break;
+				case SDL_WINDOWEVENT:
+					if (m_program_window_event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED){
+						static int asd = 0;
+						ui_items.clear();
+						ui_needs_update = true;
+					}
+					break;
+				case SDL_MOUSEWHEEL:
+					operators_yscroll_position += m_program_window_event.wheel.y*10;
+					ui_items.clear();
+					ui_needs_update = true;
 					break;
 				case SDL_MOUSEBUTTONDOWN:
 					x = m_program_window_event.motion.x;
@@ -186,8 +203,6 @@ void CloneUI::update_slider(int x, int y){
 	if (*(item->value) != value){
 		*(item->value) = value;
 		setup_instrument(song.instrument[active_instr]);
-		ui_items.empty();
-		ui_needs_update = true;
 	}
 }
 
@@ -251,25 +266,31 @@ void CloneUI::horizontal_slider(int x, int y, const char* name, uint8_t* value, 
 }
 
 void CloneUI::draw(){
-	SDL_RenderClear(m_program_window_renderer);
+	int w, h;
+	SDL_GetRendererOutputSize(m_program_window_renderer, &w, &h);
 
-	// WAVE FORMS:
-	draw_wave(OPERATOR_WIDGET_WIDTH + 2*MARGIN, MARGIN);
+	SDL_RenderClear(m_program_window_renderer);
+	draw_wave(MARGIN, MARGIN);
+	draw_operators_dialog(w - OPERATOR_WIDGET_WIDTH - 2*MARGIN, operators_yscroll_position);
+}
+
+void CloneUI::draw_operators_dialog(int x, int y){
 
 	SDL_Rect rect;
-	rect.x = 10;
-	rect.y = 10;
+	rect.x = x + 10;
+	rect.y = y + 10;
 	rect.w = OPERATOR_WIDGET_WIDTH;
 	rect.h = 4*OPERATOR_WIDGET_HEIGHT;
 
 	// Draw background:
-	SDL_SetRenderDrawColor(m_program_window_renderer, 32, 32, 32, 32);
+	SDL_SetRenderDrawColor(m_program_window_renderer, 32, 32, 32, 220);
 	SDL_RenderFillRect(m_program_window_renderer, &rect);
 
-	int x = 0, y = MARGIN;
+	int x0 = x;
+	y += MARGIN;
 	// Render operators:
 	for (int i=0; i<4; i++){
-		x = MARGIN;
+		x = x0 + MARGIN;
 
 		if (i>0){
 			// Separator line between the operator widgets:
