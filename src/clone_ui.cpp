@@ -22,7 +22,8 @@ CloneUI::CloneUI(){
 	SDL_CreateWindowAndRenderer(WINDOW_WIDTH,
 	                            WINDOW_HEIGHT,
 	                            SDL_WINDOW_RESIZABLE,
-	                            &m_program_window, &m_program_window_renderer);                     
+	                            &m_program_window, &m_program_window_renderer);
+	SDL_MaximizeWindow(m_program_window);
 	SDL_SetRenderDrawBlendMode(m_program_window_renderer, SDL_BLENDMODE_BLEND);
 	ui_needs_update = true;
 	grabbed_item = -1;
