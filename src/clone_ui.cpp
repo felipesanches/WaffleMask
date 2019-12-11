@@ -98,7 +98,7 @@ void CloneUI::draw_text(int x, int y, std::string text_str, SDL_Color textColor)
 	SDL_DestroyTexture(text);
 }
 
-void CloneUI::draw_wave(int x, int y){
+void CloneUI::draw_waveform_viewer(int x, int y){
 	SDL_Rect rect;
 	rect.x = x;
 	rect.y = y;
@@ -122,7 +122,7 @@ void CloneUI::draw_wave(int x, int y){
 #define OPERATOR_GRAPH_AREA_WIDTH 265
 #define OPERATOR_GRAPH_AREA_HEIGHT 64
 
-void CloneUI::draw_graph(int x, int y, DMF::Instrument::FM_Operator op){
+void CloneUI::draw_fm_operator_graph(int x, int y, DMF::Instrument::FM_Operator op){
 	SDL_Rect rect;
 	rect.x = x;
 	rect.y = y;
@@ -271,15 +271,15 @@ void CloneUI::draw(){
 	SDL_GetRendererOutputSize(m_program_window_renderer, &w, &h);
 
 	SDL_RenderClear(m_program_window_renderer);
-	draw_wave(MARGIN, MARGIN);
-	draw_operators_dialog(w - OPERATOR_WIDGET_WIDTH - 2*MARGIN, operators_yscroll_position);
+	draw_waveform_viewer(MARGIN, MARGIN);
+	draw_operators_dialog(w - OPERATOR_WIDGET_WIDTH, operators_yscroll_position);
 }
 
 void CloneUI::draw_operators_dialog(int x, int y){
 
 	SDL_Rect rect;
-	rect.x = x + 10;
-	rect.y = y + 10;
+	rect.x = x;
+	rect.y = y;
 	rect.w = OPERATOR_WIDGET_WIDTH;
 	rect.h = 4*OPERATOR_WIDGET_HEIGHT;
 
@@ -288,10 +288,9 @@ void CloneUI::draw_operators_dialog(int x, int y){
 	SDL_RenderFillRect(m_program_window_renderer, &rect);
 
 	int x0 = x;
-	y += MARGIN;
 	// Render operators:
 	for (int i=0; i<4; i++){
-		x = x0 + MARGIN;
+		x = x0;
 
 		if (i>0){
 			// Separator line between the operator widgets:
@@ -304,7 +303,7 @@ void CloneUI::draw_operators_dialog(int x, int y){
 		x += PADDING;
 
 		// Graph:
-		draw_graph(x + 135, y + 25, song.instrument[active_instr].fm.op[i]);
+		draw_fm_operator_graph(x + 135, y + 25, song.instrument[active_instr].fm.op[i]);
 
 		// ADSR sliders:
 		vertical_slider(x + 0 * VSLIDER_WIDTH, y, "A",  &(song.instrument[active_instr].fm.op[i].AR),  31);
