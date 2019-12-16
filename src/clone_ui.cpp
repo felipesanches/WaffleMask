@@ -15,6 +15,8 @@ extern unsigned int SAMPLES_PER_BUFFER;
 #define WAVE_AREA_HEIGHT 300
 #define OPERATOR_WIDGET_WIDTH 500
 #define OPERATOR_WIDGET_HEIGHT 160
+#define FM_OPERATOR_COMMON_PARAMS_HEIGHT 200
+#define INSTRUMENT_DIALOG_HEIGHT (FM_OPERATOR_COMMON_PARAMS_HEIGHT + 4*OPERATOR_WIDGET_HEIGHT)
 #define MARGIN 10
 #define PADDING 30
 
@@ -27,7 +29,7 @@ CloneUI::CloneUI(){
 	SDL_SetRenderDrawBlendMode(m_program_window_renderer, SDL_BLENDMODE_BLEND);
 	ui_needs_update = true;
 	grabbed_item = -1;
-	operators_yscroll_position = 0;
+	instrument_dialog_yscroll = 0;
 }
 
 void CloneUI::program_loop(){
@@ -43,13 +45,16 @@ void CloneUI::program_loop(){
 					break;
 				case SDL_WINDOWEVENT:
 					if (m_program_window_event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED){
-						static int asd = 0;
 						ui_items.clear();
 						ui_needs_update = true;
 					}
 					break;
 				case SDL_MOUSEWHEEL:
-					operators_yscroll_position += m_program_window_event.wheel.y*10;
+					int w, h;
+					SDL_GetRendererOutputSize(m_program_window_renderer, &w, &h);
+					instrument_dialog_yscroll += m_program_window_event.wheel.y*10;
+					instrument_dialog_yscroll = std::min(instrument_dialog_yscroll, 0);
+					instrument_dialog_yscroll = std::max(instrument_dialog_yscroll, h-INSTRUMENT_DIALOG_HEIGHT);
 					ui_items.clear();
 					ui_needs_update = true;
 					break;
@@ -272,21 +277,174 @@ void CloneUI::draw(){
 
 	SDL_RenderClear(m_program_window_renderer);
 	draw_waveform_viewer(MARGIN, MARGIN);
-	draw_operators_dialog(w - OPERATOR_WIDGET_WIDTH, operators_yscroll_position);
+	draw_instrument_dialog(w - OPERATOR_WIDGET_WIDTH, instrument_dialog_yscroll);
 }
 
-void CloneUI::draw_operators_dialog(int x, int y){
+void CloneUI::draw_single_operator_block_icon(int num, int x, int y, int extra_x){
+	int K = 24;
+	int L = 12;
+	float l = (K-L)/2.0;
+	SDL_Rect r;
+	r.w = L;
+	r.h = L;
+	r.x = x + l;
+	r.y = y - 0.5*L;
+	SDL_SetRenderDrawColor(m_program_window_renderer, 0, 255, 0, 255);
+	SDL_RenderFillRect(m_program_window_renderer, &r);
+	SDL_RenderDrawLine(m_program_window_renderer,
+	   /* X1: */  x,               /* Y1: */  y,
+	   /* X2: */  x + K + extra_x, /* Y2: */  y
+	);
+
+	SDL_Color BLACK = { 0, 0, 0, 255 };
+	draw_text(x + K/2.0 - 2, y-L/2.0, std::to_string(num), BLACK);
+
+	if (num==1){
+		SDL_SetRenderDrawColor(m_program_window_renderer, 0, 255, 0, 255);
+		SDL_RenderDrawLine(m_program_window_renderer,
+		   /* X1: */  x + l/2.0, /* Y1: */  y,
+		   /* X2: */  x + l/2.0, /* Y2: */  y - L/2 - l/2.0
+		);
+		SDL_RenderDrawLine(m_program_window_renderer,
+		   /* X1: */  x + l/2.0,     /* Y1: */  y - L/2 - l/2.0,
+		   /* X2: */  x + K - l/2.0, /* Y2: */  y - L/2 - l/2.0
+		);
+		SDL_RenderDrawLine(m_program_window_renderer,
+		   /* X1: */  x + K - l/2.0, /* Y1: */  y,
+		   /* X2: */  x + K - l/2.0, /* Y2: */  y - L/2 - l/2.0
+		);
+	}
+}
+
+void CloneUI::draw_fm_algorithm_icon(int x, int y, int alg){
+	int K = 24;
+	int L = 12;
+
+	switch (alg){
+		case 0:
+			draw_single_operator_block_icon(1,       x, y, 0);
+			draw_single_operator_block_icon(2,   x + K, y, 0);
+			draw_single_operator_block_icon(3, x + 2*K, y, 0);
+			draw_single_operator_block_icon(4, x + 3*K, y, 0);
+			break;
+		case 1:
+			draw_single_operator_block_icon(1,       x, y - L, 0);
+			draw_single_operator_block_icon(2,       x, y + L, 0);
+			draw_single_operator_block_icon(3,   x + K,     y, 0);
+			draw_single_operator_block_icon(4, x + 2*K,     y, 0);
+			SDL_RenderDrawLine(m_program_window_renderer,
+			   /* X1: */  x + K, /* Y1: */  y - L,
+			   /* X2: */  x + K, /* Y2: */  y + L
+			);
+			break;
+		case 2:
+			draw_single_operator_block_icon(1,       x, y - L, K);
+			draw_single_operator_block_icon(2,       x, y + L, 0);
+			draw_single_operator_block_icon(3,   x + K, y + L, 0);
+			draw_single_operator_block_icon(4, x + 2*K,     y, 0);
+			SDL_RenderDrawLine(m_program_window_renderer,
+			   /* X1: */  x + 2*K, /* Y1: */  y - L,
+			   /* X2: */  x + 2*K, /* Y2: */  y + L
+			);
+			break;
+		case 3:
+			draw_single_operator_block_icon(1,       x, y - L, 0);
+			draw_single_operator_block_icon(2,   x + K, y - L, 0);
+			draw_single_operator_block_icon(3,   x + K, y + L, 0);
+			draw_single_operator_block_icon(4, x + 2*K,     y, 0);
+			SDL_RenderDrawLine(m_program_window_renderer,
+			   /* X1: */  x + 2*K, /* Y1: */  y - L,
+			   /* X2: */  x + 2*K, /* Y2: */  y + L
+			);
+			break;
+		case 4:
+			draw_single_operator_block_icon(1,       x, y - L, 0);
+			draw_single_operator_block_icon(2,   x + K, y - L, 0);
+			draw_single_operator_block_icon(3,       x, y + L, 0);
+			draw_single_operator_block_icon(4,   x + K, y + L, 0);
+			SDL_RenderDrawLine(m_program_window_renderer,
+			   /* X1: */  x + 2*K, /* Y1: */  y - L,
+			   /* X2: */  x + 2*K, /* Y2: */  y + L
+			);
+			SDL_RenderDrawLine(m_program_window_renderer,
+			   /* X1: */  x + 2*K,         /* Y1: */  y,
+			   /* X2: */  x + 2*K + 0.5*L, /* Y2: */  y
+			);
+			break;
+		case 5:
+			draw_single_operator_block_icon(1,       x,         y, 0);
+			draw_single_operator_block_icon(2,   x + K, y - 1.5*L, 0);
+			draw_single_operator_block_icon(3,   x + K,         y, 0);
+			draw_single_operator_block_icon(4,   x + K, y + 1.5*L, 0);
+			SDL_RenderDrawLine(m_program_window_renderer,
+			   /* X1: */  x + 1*K, /* Y1: */  y - 1.5*L,
+			   /* X2: */  x + 1*K, /* Y2: */  y + 1.5*L
+			);
+			SDL_RenderDrawLine(m_program_window_renderer,
+			   /* X1: */  x + 2*K, /* Y1: */  y - 1.5*L,
+			   /* X2: */  x + 2*K, /* Y2: */  y + 1.5*L
+			);
+			SDL_RenderDrawLine(m_program_window_renderer,
+			   /* X1: */  x + 2*K,         /* Y1: */  y,
+			   /* X2: */  x + 2*K + 0.5*L, /* Y2: */  y
+			);
+			break;
+		case 6:
+			draw_single_operator_block_icon(1,       x, y - 1.5*L, 0);
+			draw_single_operator_block_icon(2,   x + K, y - 1.5*L, 0);
+			draw_single_operator_block_icon(3,   x + K,         y, 0);
+			draw_single_operator_block_icon(4,   x + K, y + 1.5*L, 0);
+			SDL_RenderDrawLine(m_program_window_renderer,
+			   /* X1: */  x + 2*K, /* Y1: */  y - 1.5*L,
+			   /* X2: */  x + 2*K, /* Y2: */  y + 1.5*L
+			);
+			SDL_RenderDrawLine(m_program_window_renderer,
+			   /* X1: */  x + 2*K,         /* Y1: */  y,
+			   /* X2: */  x + 2*K + 0.5*L, /* Y2: */  y
+			);
+			break;
+		case 7:
+			draw_single_operator_block_icon(1,   x, y - 2.25*L, 0);
+			draw_single_operator_block_icon(2,   x, y - 0.75*L, 0);
+			draw_single_operator_block_icon(3,   x, y + 0.75*L, 0);
+			draw_single_operator_block_icon(4,   x, y + 2.25*L, 0);
+			SDL_RenderDrawLine(m_program_window_renderer,
+			   /* X1: */  x + K, /* Y1: */  y - 2.25*L,
+			   /* X2: */  x + K, /* Y2: */  y + 2.25*L
+			);
+			SDL_RenderDrawLine(m_program_window_renderer,
+			   /* X1: */  x + K,         /* Y1: */  y,
+			   /* X2: */  x + K + 0.5*L, /* Y2: */  y
+			);
+			break;
+	}
+}
+
+
+void CloneUI::draw_instrument_dialog(int x, int y){
 
 	SDL_Rect rect;
 	rect.x = x;
 	rect.y = y;
 	rect.w = OPERATOR_WIDGET_WIDTH;
-	rect.h = 4*OPERATOR_WIDGET_HEIGHT;
+	rect.h = INSTRUMENT_DIALOG_HEIGHT;
 
 	// Draw background:
 	SDL_SetRenderDrawColor(m_program_window_renderer, 32, 32, 32, 220);
 	SDL_RenderFillRect(m_program_window_renderer, &rect);
 
+	horizontal_slider(x + 100, y + 50,
+	                  "FMS",  &(song.instrument[active_instr].fm.LFO), 0, 7);
+	horizontal_slider(x + 100, y + 80,
+	                  "AMS",  &(song.instrument[active_instr].fm.LFO2), 0, 3);
+	horizontal_slider(x + 100, y + 110,
+	                  "FB",  &(song.instrument[active_instr].fm.FB), 0, 7);
+	horizontal_slider(x + 100, y + 140,
+	                  "ALG",  &(song.instrument[active_instr].fm.ALG), 0, 7);
+
+	draw_fm_algorithm_icon(x + 250, y + 140, song.instrument[active_instr].fm.ALG);
+
+	y += FM_OPERATOR_COMMON_PARAMS_HEIGHT;
 	int x0 = x;
 	// Render operators:
 	for (int i=0; i<4; i++){
