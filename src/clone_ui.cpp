@@ -434,13 +434,13 @@ void CloneUI::draw_instrument_dialog(int x, int y){
 	SDL_RenderFillRect(m_program_window_renderer, &rect);
 
 	horizontal_slider(x + 100, y + 50,
-	                  "FMS",  &(song.instrument[active_instr].fm.LFO), 0, 7);
+	                  "FMS:  ",  &(song.instrument[active_instr].fm.LFO), 0, 7);
 	horizontal_slider(x + 100, y + 80,
-	                  "AMS",  &(song.instrument[active_instr].fm.LFO2), 0, 3);
+	                  "AMS:  ",  &(song.instrument[active_instr].fm.LFO2), 0, 3);
 	horizontal_slider(x + 100, y + 110,
-	                  "FB",  &(song.instrument[active_instr].fm.FB), 0, 7);
+	                  "FEEDBACK:  ",  &(song.instrument[active_instr].fm.FB), 0, 7);
 	horizontal_slider(x + 100, y + 140,
-	                  "ALG",  &(song.instrument[active_instr].fm.ALG), 0, 7);
+	                  "ALGORITHM:  ",  &(song.instrument[active_instr].fm.ALG), 0, 7);
 
 	draw_fm_algorithm_icon(x + 250, y + 140, song.instrument[active_instr].fm.ALG);
 
@@ -471,7 +471,7 @@ void CloneUI::draw_instrument_dialog(int x, int y){
 		vertical_slider(x + 4 * VSLIDER_WIDTH, y, "R",  &(song.instrument[active_instr].fm.op[i].RR),  15);
 
 		// TL slider:
-		vertical_slider(x + 420, y, "TL",  &(song.instrument[active_instr].fm.op[i].TL), 127);
+		vertical_slider(x + 420, y, "LEVEL",  &(song.instrument[active_instr].fm.op[i].TL), 127);
 
 		// Operator number
 		SDL_Color YELLOW = { 255, 255, 0, 0 };
@@ -479,19 +479,19 @@ void CloneUI::draw_instrument_dialog(int x, int y){
 
 		// MULT slider:
 		horizontal_slider(x + 135, y + 27 + OPERATOR_GRAPH_AREA_HEIGHT,
-		                  "MULT",  &(song.instrument[active_instr].fm.op[i].MULT), 0, 15);
+		                  "MULT:  ",  &(song.instrument[active_instr].fm.op[i].MULT), 0, 15);
 
 		// DT slider:
 		horizontal_slider(x + 135, y + 32 + OPERATOR_GRAPH_AREA_HEIGHT + 2*HSLIDER_HEIGHT,
-		                  "DT",  &(song.instrument[active_instr].fm.op[i].DT), -3, 3);
+		                  "DETUNE:  ",  &(song.instrument[active_instr].fm.op[i].DT), -3, 3);
 
 		// RS slider:
 		horizontal_slider(x + 135 + MARGIN + HSLIDER_WIDTH, y + 27 + OPERATOR_GRAPH_AREA_HEIGHT,
-		                  "RS",  &(song.instrument[active_instr].fm.op[i].RS), 0, 3);
+		                  "RS:  ",  &(song.instrument[active_instr].fm.op[i].RS), 0, 3);
 
 		// SSG-EG slider:
 		horizontal_slider(x + 135 + MARGIN + HSLIDER_WIDTH, y + 32 + OPERATOR_GRAPH_AREA_HEIGHT + 2*HSLIDER_HEIGHT,
-		                  "SSG-EG",  &(song.instrument[active_instr].fm.op[i].SSGMODE), 0, 7);
+		                  "SSG-EG:  ",  &(song.instrument[active_instr].fm.op[i].SSGMODE), 0, 7);
 
 		// Y coordinate for the next operator widget:
 		y += OPERATOR_WIDGET_HEIGHT;
