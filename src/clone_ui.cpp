@@ -2,11 +2,13 @@
 #include "clone.h"
 #include "clone_ui.h"
 #include "dmf.h"
+#include "chips/mamedef.h"
 
 extern DMF::Song song;
 extern int active_instr;
 extern int* CurBufR;
 extern unsigned int SAMPLES_PER_BUFFER;
+extern void play(UINT8 note, UINT8 velocity);
 
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
@@ -33,7 +35,7 @@ CloneUI::CloneUI(){
 }
 
 void CloneUI::program_loop(){
-	int x, y;
+	int x, y, note, current_note;
 	bool keep_running = true;
 	TTF_Init();
 	m_font = TTF_OpenFont("Tomorrow-Regular.ttf", 10);
@@ -81,12 +83,56 @@ void CloneUI::program_loop(){
 						update_slider(x, y);
 					}
 					break;
-				}
+				case SDL_KEYDOWN:
+					note = get_note_from_keyboard(m_program_window_event.key.keysym.sym);
+					if (note != current_note){
+						play(note, 63);
+						current_note = note;
+					}
+					break;
+				case SDL_KEYUP:
+					play(current_note, 0);
+					current_note = 0;
+					break;
+			}
 		}
 
 		update(1.0/60.0);
 		draw();
 	}
+}
+
+int CloneUI::get_note_from_keyboard(SDL_Keycode keysym){
+	int C3 = 48; //FIXME! Is this correct?
+	switch(keysym){
+		case SDLK_z: return C3;
+		case SDLK_s: return C3 + 1;
+		case SDLK_x: return C3 + 2;
+		case SDLK_d: return C3 + 3;
+		case SDLK_c: return C3 + 4;
+		case SDLK_v: return C3 + 5;
+		case SDLK_g: return C3 + 6;
+		case SDLK_b: return C3 + 7;
+		case SDLK_h: return C3 + 8;
+		case SDLK_n: return C3 + 9;
+		case SDLK_j: return C3 + 10;
+		case SDLK_m: return C3 + 11;
+		case SDLK_COMMA:
+		case SDLK_q: return C3 + 12;
+		case SDLK_2: return C3 + 13;
+		case SDLK_w: return C3 + 14;
+		case SDLK_3: return C3 + 15;
+		case SDLK_e: return C3 + 16;
+		case SDLK_r: return C3 + 17;
+		case SDLK_5: return C3 + 18;
+		case SDLK_t: return C3 + 19;
+		case SDLK_6: return C3 + 20;
+		case SDLK_y: return C3 + 21;
+		case SDLK_7: return C3 + 22;
+		case SDLK_u: return C3 + 23;
+		case SDLK_i: return C3 + 24;
+	}
+	return 0;
 }
 
 void CloneUI::update(double delta_time){

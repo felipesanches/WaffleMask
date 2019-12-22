@@ -35,6 +35,7 @@ private:
     void draw_waveform_viewer(int x, int y);
     void register_slider(int type, SDL_Rect rect, int value_min, int value_max, uint8_t* value);
     void update_slider(int x, int y);
+    int get_note_from_keyboard(SDL_Keycode keysym);
 
     int instrument_dialog_yscroll;
     bool ui_needs_update;
