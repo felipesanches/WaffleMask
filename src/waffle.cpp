@@ -12,7 +12,7 @@
 #include <pthread.h>
 #include <math.h>
 #include "datareader.h"
-#include "clone_ui.h"
+#include "waffle_ui.h"
 
 UINT32 sampleRate = 44100*1000;
 UINT8 CHIP_SAMPLING_MODE = 0;
@@ -266,7 +266,7 @@ int main(int argc, char** argv){
 		return 1;
 	}
 
-	CloneUI ui;
+	WaffleUI ui;
 	ui.program_loop();
 
 	return 0;

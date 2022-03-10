@@ -1,6 +1,6 @@
 #include <string>
-#include "clone.h"
-#include "clone_ui.h"
+#include "waffle.h"
+#include "waffle_ui.h"
 #include "dmf.h"
 #include "chips/mamedef.h"
 
@@ -22,7 +22,7 @@ extern void play(UINT8 note, UINT8 velocity);
 #define MARGIN 10
 #define PADDING 30
 
-CloneUI::CloneUI(){
+WaffleUI::WaffleUI(){
 	SDL_CreateWindowAndRenderer(WINDOW_WIDTH,
 	                            WINDOW_HEIGHT,
 	                            SDL_WINDOW_RESIZABLE,
@@ -34,7 +34,7 @@ CloneUI::CloneUI(){
 	instrument_dialog_yscroll = 0;
 }
 
-void CloneUI::program_loop(){
+void WaffleUI::program_loop(){
 	int x, y, note, current_note;
 	bool keep_running = true;
 	TTF_Init();
@@ -102,7 +102,7 @@ void CloneUI::program_loop(){
 	}
 }
 
-int CloneUI::get_note_from_keyboard(SDL_Keycode keysym){
+int WaffleUI::get_note_from_keyboard(SDL_Keycode keysym){
 	int C3 = 48; //FIXME! Is this correct?
 	switch(keysym){
 		case SDLK_z: return C3;
@@ -135,10 +135,10 @@ int CloneUI::get_note_from_keyboard(SDL_Keycode keysym){
 	return 0;
 }
 
-void CloneUI::update(double delta_time){
+void WaffleUI::update(double delta_time){
 }
 
-void CloneUI::draw_text(int x, int y, std::string text_str, SDL_Color textColor){
+void WaffleUI::draw_text(int x, int y, std::string text_str, SDL_Color textColor){
 	SDL_Surface* textSurface = TTF_RenderText_Solid(m_font, text_str.c_str(), textColor);
 	SDL_Texture* text = SDL_CreateTextureFromSurface(m_program_window_renderer, textSurface);
 	int text_width = textSurface->w;
@@ -149,7 +149,7 @@ void CloneUI::draw_text(int x, int y, std::string text_str, SDL_Color textColor)
 	SDL_DestroyTexture(text);
 }
 
-void CloneUI::draw_waveform_viewer(int x, int y){
+void WaffleUI::draw_waveform_viewer(int x, int y){
 	SDL_Rect rect;
 	rect.x = x;
 	rect.y = y;
@@ -173,7 +173,7 @@ void CloneUI::draw_waveform_viewer(int x, int y){
 #define OPERATOR_GRAPH_AREA_WIDTH 265
 #define OPERATOR_GRAPH_AREA_HEIGHT 64
 
-void CloneUI::draw_fm_operator_graph(int x, int y, DMF::Instrument::FM_Operator op){
+void WaffleUI::draw_fm_operator_graph(int x, int y, DMF::Instrument::FM_Operator op){
 	SDL_Rect rect;
 	rect.x = x;
 	rect.y = y;
@@ -225,7 +225,7 @@ void CloneUI::draw_fm_operator_graph(int x, int y, DMF::Instrument::FM_Operator 
 	);
 }
 
-void CloneUI::register_slider(int type, SDL_Rect area, int value_min, int value_max, uint8_t* value){
+void WaffleUI::register_slider(int type, SDL_Rect area, int value_min, int value_max, uint8_t* value){
 	if (ui_needs_update){
 		UI_Item item;
 		item.type = type;
@@ -237,7 +237,7 @@ void CloneUI::register_slider(int type, SDL_Rect area, int value_min, int value_
 	}
 }
 
-void CloneUI::update_slider(int x, int y){
+void WaffleUI::update_slider(int x, int y){
 	int coord, coord_min, coord_max;
 	UI_Item* item = &ui_items[grabbed_item];
 	if (item->type == VERTICAL_SLIDER){
@@ -262,7 +262,7 @@ void CloneUI::update_slider(int x, int y){
 
 #define VSLIDER_WIDTH 24
 #define VSLIDER_HEIGHT 160
-void CloneUI::vertical_slider(int x, int y, const char* name, uint8_t* value, int max_value){
+void WaffleUI::vertical_slider(int x, int y, const char* name, uint8_t* value, int max_value){
 	int width = VSLIDER_WIDTH - 6;
 	int height = VSLIDER_HEIGHT - 2 * 25;
 	SDL_Rect rect;
@@ -291,7 +291,7 @@ void CloneUI::vertical_slider(int x, int y, const char* name, uint8_t* value, in
 
 #define HSLIDER_WIDTH ((OPERATOR_GRAPH_AREA_WIDTH - MARGIN)/2)
 #define HSLIDER_HEIGHT 10
-void CloneUI::horizontal_slider(int x, int y, const char* name, uint8_t* value, int min_value, int max_value){
+void WaffleUI::horizontal_slider(int x, int y, const char* name, uint8_t* value, int min_value, int max_value){
 	int width = HSLIDER_WIDTH;
 	int height = HSLIDER_HEIGHT;
 	SDL_Rect rect;
@@ -317,7 +317,7 @@ void CloneUI::horizontal_slider(int x, int y, const char* name, uint8_t* value, 
 	SDL_RenderFillRect(m_program_window_renderer, &rect);
 }
 
-void CloneUI::draw(){
+void WaffleUI::draw(){
 	int w, h;
 	SDL_GetRendererOutputSize(m_program_window_renderer, &w, &h);
 
@@ -326,7 +326,7 @@ void CloneUI::draw(){
 	draw_instrument_dialog(w - OPERATOR_WIDGET_WIDTH, instrument_dialog_yscroll);
 }
 
-void CloneUI::draw_single_operator_block_icon(int num, int x, int y, int extra_x){
+void WaffleUI::draw_single_operator_block_icon(int num, int x, int y, int extra_x){
 	int K = 24;
 	int L = 12;
 	float l = (K-L)/2.0;
@@ -362,7 +362,7 @@ void CloneUI::draw_single_operator_block_icon(int num, int x, int y, int extra_x
 	}
 }
 
-void CloneUI::draw_fm_algorithm_icon(int x, int y, int alg){
+void WaffleUI::draw_fm_algorithm_icon(int x, int y, int alg){
 	int K = 24;
 	int L = 12;
 
@@ -467,7 +467,7 @@ void CloneUI::draw_fm_algorithm_icon(int x, int y, int alg){
 }
 
 
-void CloneUI::draw_instrument_dialog(int x, int y){
+void WaffleUI::draw_instrument_dialog(int x, int y){
 
 	SDL_Rect rect;
 	rect.x = x;

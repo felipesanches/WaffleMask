@@ -57,17 +57,17 @@ EMUOBJS = \
 	obj/src/chips/2612intf.o
 
 MAINOBJS = \
-	obj/src/clone.o \
-	obj/src/clone_ui.o \
+	obj/src/waffle.o \
+	obj/src/waffle_ui.o \
 	obj/src/dmf.o \
 	obj/src/datareader.o
  
 
-all:	clone
+all:	waffle
 
-clone:	$(EMUOBJS) $(MAINOBJS)
-	@echo Linking clone ...
-	@$(CXX) $(MAINOBJS) $(EMUOBJS) $(LDFLAGS) -o clone
+waffle:	$(EMUOBJS) $(MAINOBJS)
+	@echo Linking waffle ...
+	@$(CXX) $(MAINOBJS) $(EMUOBJS) $(LDFLAGS) -o waffle
 	@echo Done.
 
 
@@ -87,7 +87,7 @@ clean:
 	@echo Deleting object files ...
 	@rm -f $(MAINOBJS) $(EMUOBJS)
 	@echo Deleting executable files ...
-	@rm -f clone
+	@rm -f waffle
 	@echo Done.
 
 

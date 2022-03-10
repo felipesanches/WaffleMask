@@ -14,11 +14,11 @@ struct UI_Item {
 	uint8_t* value;
 };
 
-class CloneUI
+class WaffleUI
 {
 public:
-    CloneUI();
-    ~CloneUI() = default;
+    WaffleUI();
+    ~WaffleUI() = default;
 
     void program_loop();
     void update(double delta_time);
